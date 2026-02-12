@@ -589,9 +589,6 @@ onValue(ref(db, 'characters'), (snapshot) => {
     console.error(error);
   }
 
-window.init = init;
-    window.loadFromFirebase = loadFromFirebase;
-
 </script>
 
 <body>
@@ -943,12 +940,53 @@ window.init = init;
         { name: 'TEAM RAY', color: '#00ff88' },
         { name: 'SOLO', color: '#888888' }
     ];
-charDB = window.charDB;
-categoryDB = window.categoryDB;
-termDB = window.termDB;
-relationDB = window.relationDB;
-userDB = window.userDB;
-globalConfig = window.globalConfig;
+    let charDB = [
+        { 
+            id: 'char_001', name: 'ZERO', team: 'SOLO', isLeader: false, 
+            gender: 'Male', age: '17', origin: 'Mining Planet 7', birth: '12.25', 
+            height: '178cm', weight: '65kg', blood: 'AB', sign: 'Capricorn', 
+            like: 'Quiet places, Cubes', food: 'Energy Bar', 
+            metaName: 'Vector Hammer', metaDesc: '가해지는 충격의 방향을 임의로 비틀어 파괴력을 극대화함.', 
+            catchphrase: '모든 방향은 내가 결정한다.', 
+            intro: '과묵하고 냉철한 성격의 소유자. 과거 광산 행성에서의 기억 때문에 타인과의 교류를 꺼린다. 오직 자신의 목적을 달성하기 위해 대회에 참가했다.', 
+            personality: '#냉철함 #논리적 #마이웨이\n감정을 잘 드러내지 않으며 효율을 중시한다.', 
+            background: '광산 행성 7구역 출신. 붕괴 사고에서 유일하게 살아남았으며, 그 과정에서 원력의 각성을 경험했다.', 
+            trivia: '큐브 퍼즐을 맞추는 것이 취미. 쓴 커피를 싫어함.',
+            stats: { atk: 8, def: 6, spd: 9, int: 7, pot: 5, sur: 8 } 
+        },
+        { 
+            id: 'char_002', name: 'KAI', team: 'TEAM KING', isLeader: true, 
+            gender: 'Male', age: '18', origin: 'Thunder Planet', birth: '04.14', 
+            height: '182cm', weight: '72kg', blood: 'B', sign: 'Aries', 
+            like: 'Sparring, Strong opponents', food: 'Spicy Meat', 
+            metaName: 'Thunder Bolt', metaDesc: '신체 능력을 전기로 강화하며, 양손의 너클을 이용해 전격을 방출한다.', 
+            catchphrase: '막을 수 있다면 막아봐라.', 
+            intro: 'TEAM KING의 돌격대장. 생각보다는 주먹이 먼저 나가는 다혈질이지만, 동료를 생각하는 마음은 끔찍하다.', 
+            personality: '#열혈 #단순무식 #의리\n복잡한 것을 싫어하고 직관적으로 행동한다.', 
+            background: '어릴 적부터 싸움에 천부적인 재능을 보였다. 썬더 행성의 투기장에서 챔피언 자리에 올랐으나 더 강한 상대를 찾아 대회에 왔다.', 
+            trivia: '매운 음식을 먹으면 전기가 더 강해진다는 루머를 믿고 있다.',
+            stats: { atk: 9.5, def: 7, spd: 8, int: 4, pot: 8, sur: 9 }
+        }
+    ];
+    let termDB = [
+        { id: 't1', title: '원력 (Meta Energy)', content: '참가자가 시스템으로부터 부여받는 고유한 잠재 능력. 각자의 성격이나 소망에 따라 형태가 결정됩니다.', isEditing: false },
+        { id: 't2', title: '심판관 (Arbitrators)', content: '대회의 공정성을 관리(하는 척 하는) 창세신의 대리인들. 강력한 권한을 가집니다.', isEditing: false }
+    ];
+    let relationDB = [
+        { source: 'char_001', target: 'char_002', type: 'hostile', memo: '시끄러워서 싫음' },
+        { source: 'char_002', target: 'char_001', type: 'hostile', memo: '재수없는 녀석' }
+    ];
+
+    const relColorMap = {
+        'lover': '#ff69b4', 'crush': '#ffb6c1', 'best_friend': '#00ff00',
+        'friend': '#00ff88', 'like': '#ff7f50', 'family': '#ffa500',
+        'friendly': '#00f0ff', 'hostile': '#ff4444', 'hate': '#8b0000'
+    };
+    const relLabelMap = {
+        'lover': 'LOVER', 'crush': 'CRUSH', 'best_friend': 'BEST FRIEND',
+        'friend': 'FRIEND', 'like': 'LIKE', 'family': 'FAMILY',
+        'friendly': 'FRIENDLY', 'hostile': 'HOSTILE', 'hate': 'HATE'
+    };
 
     let currentFilter = 'ALL';
     let currentRelChar = null;
@@ -970,26 +1008,31 @@ window.onload = function() {
         }
     }
 
-window.saveAllData = async function() {
-    // window.을 붙여서 상단 모듈과 공유하는 데이터를 명확히 지칭합니다.
-    const data = {
-        charDB: window.charDB || [],
-        categoryDB: window.categoryDB || [],
-        termDB: window.termDB || [],
-        relationDB: window.relationDB || [],
-        userDB: window.userDB || [],
-        globalConfig: window.globalConfig || {}
+// [수정됨] 데이터 저장 함수 (로컬 + 파이어베이스 동시 저장)
+    window.saveAllData = async function() {
+        const data = {
+            charDB: window.charDB || [],
+            categoryDB: window.categoryDB || [],
+            termDB: window.termDB || [],
+            relationDB: window.relationDB || [],
+            userDB: window.userDB || [],
+            globalConfig: window.globalConfig || {}
+        };
+
+        // 1. 로컬 스토리지에 즉시 저장 (새로고침 시 증발 방지)
+        localStorage.setItem('aotu_world_data', JSON.stringify(data));
+
+        // 2. 파이어베이스에 저장
+        if (window.saveToFirebase) {
+            try {
+                await window.saveToFirebase(data);
+                console.log("✅ 데이터 동기화 완료");
+            } catch (e) {
+                console.error("저장 중 오류:", e);
+                // 파이어베이스 실패해도 로컬에는 저장되었으니 안심하세요.
+            }
+        }
     };
-
-    // 로컬 스토리지 저장
-    localStorage.setItem('aotu_world_data', JSON.stringify(data));
-
-    // 파이어베이스 저장
-    if (window.saveToFirebase) {
-        await window.saveToFirebase(data);
-        console.log("데이터가 서버와 동기화되었습니다.");
-    }
-};
 
 // [이미지 업로드 처리 함수 - window에 강제 등록]
     window.handleImageUpload = function(input) {
