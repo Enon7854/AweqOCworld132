@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AOTU WORLD : OC ARCHIVE</title>
+    <style>
+        /* [1] SYSTEM VARIABLES & RESET */
+        :root {
+            --bg-deep: #0a0a0c;
+            --bg-panel: rgba(30, 30, 35, 0.95);
+            --neon-blue: #00f0ff; 
+            --neon-yellow: #ffd700;
+            --neon-red: #ff4444;
+            --text-main: #ffffff;
+            --text-sub: #8492a6;
+            --border-cut: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        #app { display: flex; height: 100%; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }
+
+.sidebar {
+    width: 250px;
+    background: #111;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    z-index: 10;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #222;
+}
+
+.sys-btn {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #444;
+    color: #666;
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: 0.3s;
+    letter-spacing: 1px;
+}
+
+.sys-btn:hover {
+    border-color: var(--neon-yellow);
+    color: var(--neon-yellow);
+    background: rgba(255, 215, 0, 0.05);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+}
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 40px;
+            letter-spacing: -1px;
+            font-style: italic;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: var(--text-sub);
+            padding: 15px;
+            margin-bottom: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.3s;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+            font-family: monospace;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            padding-left: 25px;
+        }
+
+        /* Main Content Area */
+        .content-area { flex: 1; position: relative; overflow-y: auto; padding: 40px; }
+        .section { display: none; animation: fadeIn 0.5s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2.page-title {
+            font-size: 36px;
+            border-bottom: 2px solid var(--neon-blue);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        /* [SECTION 1] CHARACTER LIST */
+        .filter-bar { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .filter-tag { position: relative; background: #222; border: 1px solid #444; color: #aaa; padding: 5px 15px; cursor: pointer; font-size: 12px; display: flex; align-items: center; transition: 0.2s; }
+        .filter-tag.active { color: #000; font-weight: bold; } 
+        .filter-tag .del-cat-btn { margin-left: 8px; color: inherit; font-weight: bold; cursor: pointer; display: none; opacity: 0.6; }
+        .filter-tag:hover .del-cat-btn { display: block; }
+
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
+        .char-card {
+            background: var(--bg-panel);
+            height: 320px;
+            position: relative;
+            clip-path: var(--border-cut);
+            border-top: 2px solid var(--neon-blue);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .char-card:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
+        .card-img { width: 100%; height: 65%; background: #222; background-size: cover; background-position: center; }
+        .card-info { padding: 15px; }
+        .card-name { font-size: 20px; font-weight: bold; color: #fff; display: block; }
+        .card-meta { font-size: 11px; color: var(--neon-yellow); margin-top: 4px; display: block; text-transform: uppercase; }
+        .card-team-icon { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; border: 1px solid var(--neon-blue); border-radius: 4px;}
+        
+        .card-delete-btn {
+            position: absolute; top: 0; right: 0;
+            width: 30px; height: 30px;
+            background: transparent;
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            z-index: 5;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .char-card:hover .card-delete-btn { opacity: 1; background: rgba(255, 68, 68, 0.8); }
+
+        /* [SECTION 2] CHARACTER DETAIL */
+        .detail-container { display: flex; gap: 40px; }
+.detail-visual {
+    flex: 1.5; /* 크기를 조금 더 키웠습니다 (기존 1.2 -> 1.5) */
+    height: 85vh; /* 높이를 조금 더 확보 */
+    background: radial-gradient(circle, rgba(0,240,255,0.1) 0%, rgba(0,0,0,0) 70%);
+    border: 1px solid #333;
+    position: sticky; 
+    top: 40px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* 캐릭터가 아래쪽에 발을 붙이도록 설정 */
+}
+        .detail-data { flex: 1; position: relative; }
+
+        #detail-name-bg {
+            position: absolute; 
+            bottom: 0px; 
+            left: 130px;
+            font-size: 140px; 
+            opacity: 0.15; 
+            font-style: italic; 
+            font-weight: 900;
+            white-space: nowrap; 
+            line-height: 1; 
+            transform: rotate(-90deg); 
+            transform-origin: 0 100%; 
+            pointer-events: none; 
+            z-index: 1; 
+            color: #fff;
+            text-transform: uppercase;
+        }
+        
+#detail-char-img {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#detail-char-img img {
+    display: block;
+    height: 100%;
+    max-height: 90vh;
+    width: auto; 
+    object-fit: contain; 
+    filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.2));
+}
+
+        /* TABS */
+        .detail-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid #333; align-items: flex-end; }
+        .tab-btn {
+            padding: 10px 20px; background: transparent; border: none; color: var(--text-sub); 
+            font-weight: bold; cursor: pointer; transition: 0.3s;
+            border-bottom: 2px solid transparent; margin-bottom: -2px;
+        }
+        .tab-btn:hover { color: #fff; }
+        .tab-btn.active { color: var(--neon-blue); border-bottom-color: var(--neon-blue); }
+        
+        /* [NEW] PEN EDIT BUTTON */
+        .tab-edit-btn {
+            margin-left: auto; /* 우측 정렬 */
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            color: var(--neon-yellow);
+            width: 36px; height: 36px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .tab-edit-btn:hover {
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+
+        /* Leader Badge */
+        .leader-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #ffd700, #ffaa00);
+            color: #000;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        /* TAB 1: ID */
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; font-size: 14px; color: var(--text-sub); }
+        .profile-grid li { list-style: none; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .profile-grid b { color: var(--neon-blue); margin-right: 8px; }
+
+        /* TAB 3: META */
+        .weapon-box {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%);
+            border-left: 4px solid var(--neon-yellow);
+            padding: 15px; margin: 20px 0;
+        }
+
+        /* TAB 4: RELATION (EDITABLE) */
+        .rel-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        .rel-table th { text-align: left; color: var(--neon-blue); padding: 10px; border-bottom: 1px solid #444; }
+        .rel-table td { padding: 10px; border-bottom: 1px solid #222; color: var(--text-sub); }
+        .rel-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; border: 1px solid transparent; }
+        
+        .rel-editor { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border: 1px solid #333; }
+        .rel-form { display: flex; gap: 10px; align-items: flex-end; }
+        .rel-input { background: #222; border: 1px solid #444; color: #fff; padding: 8px; font-size: 13px; width: 100%; }
+        .btn-small { padding: 8px 15px; cursor: pointer; border: none; font-weight: bold; font-size: 12px; }
+        .btn-add { background: var(--neon-blue); color: #000; }
+        .btn-del { background: #333; color: #ff4444; padding: 5px 10px; }
+
+        /* [SECTION 3] WORLD VIEW - ACCORDION */
+        .accordion-item { border: 1px solid #333; margin-bottom: 10px; background: rgba(255,255,255,0.02); }
+        .accordion-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; align-items: center; min-height: 50px;}
+        .accordion-header:hover { background: rgba(0,240,255,0.05); }
+        .accordion-content { padding: 0 15px; max-height: 0; overflow: hidden; transition: 0.3s ease-out; color: var(--text-sub); font-size: 14px; }
+        .accordion-item.open .accordion-content { padding: 15px; max-height: 200px; border-top: 1px solid #333; }
+        
+        .term-controls { display: flex; gap: 8px; font-size: 14px; align-items: center;}
+        .term-btn { background: transparent; border: none; cursor: pointer; font-size: 16px; color: var(--text-sub); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+
+        .inline-input-title { background: #222; border: 1px solid var(--neon-blue); color: #fff; padding: 5px 10px; font-weight: bold; width: 70%; font-size: 15px; }
+        .inline-input-desc { width: 100%; height: 80px; background: #222; border: 1px solid var(--neon-blue); color: #ccc; padding: 10px; font-family: inherit; resize: vertical; margin-bottom: 10px; }
+
+        /* [SECTION 4] RELATIONSHIP MAP & LEGEND */
+        .rel-container { display: flex; height: 600px; border: 1px solid #333; position: relative; }
+        .rel-sidebar { width: 200px; background: #0f0f11; border-right: 1px solid #333; overflow-y: auto; padding: 10px; }
+        .rel-char-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .rel-char-item:hover, .rel-char-item.active { background: rgba(0, 240, 255, 0.1); color: var(--neon-blue); }
+        .rel-char-thumb { width: 30px; height: 30px; background: #333; border-radius: 50%; }
+        
+        #rel-canvas-wrap { flex: 1; position: relative; background: #0f0f11; overflow: hidden; }
+        .rel-node {
+            position: absolute; width: 70px; height: 70px; background: #222; border: 2px solid var(--text-sub); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; cursor: pointer; z-index: 2;
+            transition: all 0.3s ease;
+        }
+        .rel-node.main { width: 90px; height: 90px; border-color: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); font-weight: bold; }
+
+        /* LEGEND BOX */
+        .legend-box {
+            position: absolute; bottom: 20px; right: 20px; 
+            background: rgba(0,0,0,0.8); border: 1px solid #444; 
+            padding: 15px; width: 150px; z-index: 5;
+            backdrop-filter: blur(4px);
+        }
+        .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 12px; color: #ccc; }
+        .legend-color { width: 12px; height: 12px; border-radius: 2px; }
+
+        /* [MODAL COMMON] */
+        #inputModal, #catModal {
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.85); z-index:9999; 
+            align-items:center; justify-content:center; backdrop-filter: blur(5px);
+        }
+        
+        /* [MODAL NEW LAYOUT] */
+        .modal-content {
+            background:#1a1a1d; border:2px solid var(--neon-blue); 
+            width:90%; max-width:900px; height: 80vh; 
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); 
+            position:relative; display: flex; overflow: hidden; padding: 0;
+        }
+
+        .modal-sidebar {
+            width: 200px; background: #111; border-right: 1px solid #333;
+            display: flex; flex-direction: column; padding: 20px 0;
+        }
+        .modal-nav-btn {
+            background: transparent; border: none; color: #666; padding: 15px 20px;
+            text-align: left; cursor: pointer; font-weight: bold; font-size: 13px;
+            transition: 0.2s; border-left: 3px solid transparent;
+        }
+        .modal-nav-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .modal-nav-btn.active { color: var(--neon-blue); border-left-color: var(--neon-blue); background: rgba(0, 240, 255, 0.05); }
+
+        .modal-body-area { flex: 1; padding: 30px; overflow-y: auto; }
+        
+        .edit-section { display: none; animation: fadeIn 0.3s; }
+        .edit-section.active { display: block; }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .form-group label { display:block; font-size:11px; color: var(--text-sub); margin-bottom:5px; text-transform: uppercase;}
+        .form-group input, .form-group textarea, .form-group select {
+            width:100%; background:#222; border:1px solid #444; color:#fff; padding:10px; border-radius:2px;
+            font-size: 13px;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--neon-yellow); }
+        .form-group input[type="color"] { height: 40px; cursor: pointer; padding: 2px; }
+        .form-group input[type="checkbox"] { width: auto; margin-right: 5px; transform: scale(1.2); }
+
+        .btn-primary { padding:15px; background:var(--neon-blue); color:#000; border:none; cursor:pointer; font-weight:bold; width: 100%; clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
+        .btn-secondary { padding:15px; background:#333; color:#fff; border:none; cursor:pointer; width: 100%; clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
+
+        /* [USER STATUS BAR] */
+        #user-status {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(10, 10, 12, 0.9);
+            border: 1px solid var(--neon-blue);
+            padding: 8px 15px;
+            border-radius: 4px;
+            backdrop-filter: blur(5px);
+            font-family: monospace;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        #user-status:hover { border-color: var(--neon-yellow); }
+
+        .card-img { 
+            width: 100%; 
+            height: 65%; 
+            background-color: #222; 
+            background-size: cover; 
+            background-position: top center; 
+            background-repeat: no-repeat;
+        }
+
+        #detail-char-img {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 95%;
+            width: auto;
+            max-width: 90%;
+            z-index: 2;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom center;
+        }
+
+        /* [PASSWORD OVERLAY] */
+        #password-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg-deep); z-index: 10000; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+/* [MUSIC PLAYER & SETTINGS] */
+.music-control {
+    display: flex; align-items: center; gap: 10px;
+    margin-right: 15px; padding-right: 15px; border-right: 1px solid #333;
+}
+.music-btn {
+    background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue);
+    width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 10px;
+}
+.music-btn:hover { background: var(--neon-blue); color: #000; }
+.music-visualizer {
+    display: flex; gap: 2px; align-items: flex-end; height: 15px; width: 30px;
+}
+.music-bar {
+    width: 4px; background: var(--neon-yellow); animation: equalize 1s infinite;
+}
+.music-bar:nth-child(1) { animation-delay: 0.1s; height: 40%; }
+.music-bar:nth-child(2) { animation-delay: 0.3s; height: 80%; }
+.music-bar:nth-child(3) { animation-delay: 0.5s; height: 50%; }
+.music-bar:nth-child(4) { animation-delay: 0.2s; height: 90%; }
+@keyframes equalize {
+    0%, 100% { height: 20%; } 50% { height: 100%; }
+}
+.music-paused .music-bar { animation: none; height: 2px; }
+
+/* SETTINGS BTN */
+.settings-btn {
+    background: transparent; border: none; color: var(--text-sub); 
+    font-size: 14px; cursor: pointer; transition: 0.3s;
+}
+.settings-btn:hover { color: #fff; transform: rotate(90deg); }
+
+    </style>
+</head>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAiS0NKi6QeQFEUlHQQDNKWbqoxopUhbEI",
+    authDomain: "autocoworld.firebaseapp.com",
+    databaseURL: "https://autocoworld-default-rtdb.asia-southeast1.firebasedatabase.app/", 
+    projectId: "autocoworld",
+    storageBucket: "autocoworld.firebasestorage.app",
+    messagingSenderId: "785293756397",
+    appId: "1:785293756397:web:561f55be8f137b136d09e4",
+    measurementId: "G-8K6Q3H0JGX"
+  };
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.db = db;
+    window.firebaseDB = db;
+    window.firebaseRef = ref;
+    window.firebaseOnValue = onValue;
+    window.firebaseReady = true;
+
+    window.loadFromFirebase = async function() {
+      try {
+        const snapshot = await get(child(ref(db), 'characters'));
+        return snapshot.exists() ? snapshot.val() : null;
+      } catch (e) {
+        console.error("데이터 로드 에러:", e);
+        return null;
+      }
+    };
+
+    window.saveToFirebase = async function(data) {
+      try {
+        await set(ref(db, 'characters'), data);
+        console.log("✅ Firebase 전송 완료");
+        return true;
+      } catch (error) {
+        console.error("❌ Firebase 전송 에러:", error);
+        throw error;
+      }
+    };
+    console.log("%c[Firebase] 시스템 초기화 완료!", "color: #00f0ff; font-weight: bold; background: #000; padding: 5px;");
+
+  } catch (error) {
+    console.error("%c[Firebase] 초기화 실패!", "color: #ff4444; font-weight: bold;");
+    console.error(error);
+  }
+</script>
+
+<body>
+
+<div id="app">
+<div id="user-status" style="display: none;">
+    <div class="music-control">
+        <div class="music-visualizer music-paused" id="music-viz">
+            <div class="music-bar"></div><div class="music-bar"></div>
+            <div class="music-bar"></div><div class="music-bar"></div>
+        </div>
+        <button class="music-btn" onclick="toggleMusic()" id="music-toggle-btn">▶</button>
+        <div id="youtube-player" style="display:none;"></div>
+    </div>
+
+    <div style="width: 8px; height: 8px; background: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 10px var(--neon-blue);"></div>
+    <span style="color: var(--text-sub); font-size: 11px;">OPERATOR :</span>
+    <span id="user-name-display" style="color: var(--neon-blue); font-weight: bold; font-size: 14px; letter-spacing: 1px;">UNKNOWN</span>
+    
+    <button onclick="logout()" style="background: none; border: 1px solid #333; color: #555; font-size: 10px; padding: 2px 6px; cursor: pointer; margin-left: 10px;">EXIT</button>
+</div>
+
+<nav class="sidebar">
+    <div>
+        <div class="logo">AOTU<br><span style="font-size:16px; color:#fff;">TERMINAL</span></div>
+        <button class="nav-btn active" onclick="showSection('list')">01. CONTESTANTS</button>
+        <button class="nav-btn" onclick="showSection('world')">02. WORLD LOG</button>
+        <button class="nav-btn" onclick="showSection('relation')">03. CONNECTION</button>
+    </div>
+
+    <div class="sidebar-footer" style="margin-top: auto; padding-top: 20px; border-top: 1px solid #222;">
+        <button class="sys-btn" onclick="openSettings()" style="background: rgba(0,0,0,0.3); border: 1px solid #444; color: #666; width: 100%; padding: 12px; text-align: center; cursor: pointer; font-family: monospace; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;">
+            ⚙ SYSTEM CONFIG
+        </button>
+    </div>
+</nav>
+
+    <main class="content-area">
+        <section id="list" class="section active">
+            <h2 class="page-title">CONTESTANT LIST</h2>
+            <div style="margin-bottom: 10px; color: var(--text-sub); font-size: 12px;">CATEGORY FILTER</div>
+            <div class="filter-bar" id="category-filter-container"></div>
+            <div class="filter-bar">
+                <button class="filter-tag" onclick="openCatModal()" style="border-color: #555; color: #aaa;">+ NEW CATEGORY</button>
+                <button class="filter-tag" onclick="openInputModal(null, 1)" style="border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0,240,255,0.05); font-weight: bold; margin-left: auto;">+ REGISTER NEW OC</button>
+            </div>
+            <div class="card-grid" id="char-grid-container"></div>
+        </section>
+
+        <section id="detail" class="section">
+            <div style="margin-bottom:20px;">
+                <button class="nav-btn" onclick="showSection('list')">◀ BACK TO LIST</button>
+            </div>
+            
+            <div class="detail-container">
+                <div class="detail-visual">
+                    <div id="char-effect"></div>
+                    <h1 id="detail-name-bg">NAME</h1>
+                    <div id="detail-char-img"></div>
+                </div>
+
+                <div class="detail-data">
+                    <div class="detail-tabs">
+                        <button class="tab-btn active" onclick="switchTab(1)">01 ID</button>
+                        <button class="tab-btn" onclick="switchTab(2)">02 STORY</button>
+                        <button class="tab-btn" onclick="switchTab(3)">03 META</button>
+                        <button class="tab-btn" onclick="switchTab(4)">04 RELATION</button>
+                        <button class="tab-edit-btn" onclick="openEditForCurrentTab()" title="Edit Current Page">✎</button>
+                    </div>
+
+                    <div id="tab-1" class="tab-content active">
+                        <h1 style="font-size: 50px; line-height: 1;">
+                            <span id="detail-name">NAME</span> 
+                            <span style="font-size:18px; color:var(--neon-yellow); margin-left:10px;" id="detail-team">TEAM</span>
+                            <span id="detail-leader-badge"></span>
+                        </h1>
+                        <p id="detail-catchphrase" style="font-size: 24px; font-weight: bold; color: #fff; margin: 20px 0; font-style: italic; text-shadow: 0 0 10px rgba(255,255,255,0.3);">
+                            "CATCHPHRASE HERE"
+                        </p>
+
+                        <div class="data-box" style="margin-bottom:30px;">
+                             <h3 style="color:var(--neon-blue); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:5px;">PERSONAL PROFILE</h3>
+                             <ul class="profile-grid" id="detail-profile-list"></ul>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-left: 2px solid var(--neon-blue);">
+                            <h3 style="color: #fff; font-size: 12px; margin-bottom: 10px; opacity: 0.7;">INTRODUCTION</h3>
+                            <p id="detail-intro" style="line-height: 1.6; color: #ddd; white-space: pre-wrap;">-</p>
+                        </div>
+                    </div>
+
+                    <div id="tab-2" class="tab-content">
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color:var(--neon-yellow); margin-bottom: 10px;">PERSONALITY</h3>
+                            <p id="detail-personality" style="color: var(--text-sub); line-height: 1.6; white-space: pre-wrap;">-</p>
+                        </div>
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color:var(--neon-blue); margin-bottom: 10px;">BACKGROUND</h3>
+                            <blockquote id="detail-background" style="border-left: 3px solid #444; padding-left: 15px; color: #ccc; line-height: 1.6; white-space: pre-wrap;">-</blockquote>
+                        </div>
+                        <div>
+                            <h3 style="color:var(--text-sub); font-size: 12px; margin-bottom: 10px;">TRIVIA & ETC</h3>
+                            <p id="detail-trivia" style="color: #888; font-size: 13px; white-space: pre-wrap;">-</p>
+                        </div>
+                    </div>
+
+                    <div id="tab-3" class="tab-content">
+                        <div class="weapon-box">
+                            <h3 style="color:var(--neon-yellow); font-size:14px; letter-spacing:2px;">WEAPON & META</h3>
+                            <p style="margin-top:5px; font-size:24px; font-weight: bold;"><b id="detail-meta-name">Weapon Name</b></p>
+                            <p style="color:#fff; margin-top: 10px; line-height: 1.5;" id="detail-meta-desc">Description</p>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.3); padding:20px; text-align: center;">
+                            <h3 style="color:var(--neon-blue); margin-bottom: 20px;">ABILITY PARAMETERS</h3>
+                            <canvas id="statCanvas" width="350" height="350" style="margin: 0 auto; display:block;"></canvas>
+                        </div>
+                    </div>
+
+                    <div id="tab-4" class="tab-content">
+                        <h3 style="color:var(--neon-blue); margin-bottom:15px;">SOCIAL NETWORK SETTINGS</h3>
+                        <div class="rel-editor">
+                            <h4 style="color:#ccc; font-size:12px; margin-bottom:10px;">ADD NEW CONNECTION</h4>
+                            <div class="rel-form">
+                                <div style="flex:1;">
+                                    <select id="new-rel-target" class="rel-input"></select>
+                                </div>
+                                <div style="width:120px;">
+                                    <select id="new-rel-type" class="rel-input">
+                                        <option value="friendly">Friendly (우호)</option>
+                                        <option value="best_friend">Best Friend (절친)</option>
+                                        <option value="friend">Friend (친구)</option>
+                                        <option value="like">Like (호감)</option>
+                                        <option value="lover">Lover (연인)</option>
+                                        <option value="crush">Crush (짝사랑)</option>
+                                        <option value="family">Family (가족)</option>
+                                        <option value="hostile">Hostile (적대)</option>
+                                        <option value="hate">Hate (혐오)</option>
+                                    </select>
+                                </div>
+                                <div style="flex:2;">
+                                    <input type="text" id="new-rel-memo" class="rel-input" placeholder="Memo (ex. Rival)">
+                                </div>
+                                <button onclick="addRelation()" class="btn-small btn-add">ADD</button>
+                            </div>
+                        </div>
+
+                        <table class="rel-table">
+                            <thead>
+                                <tr>
+                                    <th width="25%">TARGET</th>
+                                    <th width="20%">TYPE</th>
+                                    <th>MEMO</th>
+                                    <th width="10%">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detail-rel-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="world" class="section">
+            <h2 class="page-title">WORLD ARCHIVE</h2>
+            <div style="display:flex; gap:40px;">
+                <div style="flex:1;">
+                    <h3 style="color:var(--neon-yellow); margin-bottom:20px;">SYSTEM HISTORY</h3>
+                    <div class="timeline" style="border-left: 2px solid var(--neon-blue); padding-left:25px; margin-left:10px;">
+                        <div style="margin-bottom:30px; position:relative;">
+                            <span style="position:absolute; left:-31px; top:5px; width:10px; height:10px; background:var(--neon-blue); transform:rotate(45deg);"></span>
+                            <h4>제 1회 요철대회</h4>
+                            <p style="color:var(--text-sub); font-size:13px;">창세신의 유희로 시작된 첫 번째 서바이벌.</p>
+                        </div>
+                        <div style="margin-bottom:30px; position:relative;">
+                            <span style="position:absolute; left:-31px; top:5px; width:10px; height:10px; background:var(--neon-yellow); transform:rotate(45deg);"></span>
+                            <h4>현재 (제 3회)</h4>
+                            <p style="color:var(--text-sub); font-size:13px;">가장 많은 참가자와 변수가 발생 중인 대회.</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="color:var(--neon-blue);">TERMINOLOGY</h3>
+                        <button onclick="addNewTermInline()" style="background:none; border:1px solid var(--neon-blue); color:var(--neon-blue); padding:5px 10px; cursor:pointer; font-size:11px;">+ ADD TERM</button>
+                    </div>
+                    <div class="accordion" id="term-accordion"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="relation" class="section">
+            <h2 class="page-title">RELATIONSHIP NETWORK</h2>
+            <div class="rel-container">
+                <div class="rel-sidebar" id="rel-sidebar-list"></div>
+                <div id="rel-canvas-wrap">
+                    <canvas id="relCanvas"></canvas>
+                    <div id="rel-nodes-container"></div>
+                    <div class="legend-box" id="rel-legend"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div id="password-overlay">
+<audio id="bgm-player" loop></audio>
+    <div style="border: 2px solid var(--neon-blue); padding: 40px; background: var(--bg-panel); border-radius: 10px; text-align: center;">
+        <h2 style="color: var(--neon-blue); margin-bottom: 20px; letter-spacing: 2px;">SYSTEM ACCESS REQUIRED</h2>
+        <p style="color: var(--text-sub); margin-bottom: 20px;">인가된 참가자 코드를 입력하십시오.</p>
+        <input type="password" id="site-password" style="
+            background: #000; border: 1px solid var(--neon-blue); color: #fff; 
+            padding: 10px; width: 200px; text-align: center; font-size: 1.2rem; margin-bottom: 20px;">
+        <br>
+        <button onclick="checkPassword()" style="
+            background: var(--neon-blue); color: #000; border: none; 
+            padding: 10px 30px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            CONFIRM
+        </button>
+        <p id="pw-error" style="color: var(--neon-red); margin-top: 15px; display: none;">잘못된 코드입니다.</p>
+    </div>
+</div>
+
+<div id="inputModal">
+    <div class="modal-content">
+        <div class="modal-sidebar">
+            <div style="padding: 0 20px; margin-bottom: 20px; color: var(--neon-blue); font-style: italic; font-weight: bold;">EDIT DATA</div>
+            <button class="modal-nav-btn active" onclick="switchEditTab(1)">01 BASIC INFO</button>
+            <button class="modal-nav-btn" onclick="switchEditTab(2)">02 STORY</button>
+            <button class="modal-nav-btn" onclick="switchEditTab(3)">03 META & STATS</button>
+        </div>
+
+        <div class="modal-body-area">
+            <input type="hidden" id="inp-id"> 
+
+            <div id="edit-tab-1" class="edit-section active">
+                <h2 style="color:var(--neon-blue); margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">BASIC INFORMATION</h2>
+                
+                <div class="form-group" style="margin-bottom: 15px; background: rgba(255,255,255,0.03); padding: 10px;">
+                    <label style="color:var(--neon-yellow);">CHARACTER IMAGE</label>
+                    <div style="display:flex; gap:10px; flex-direction: column;">
+                        <input type="file" id="inp-img-file" accept="image/*" style="padding: 5px;" onchange="handleImageUpload(this)">
+                        <input type="text" id="inp-img-url" placeholder="OR Image URL (https://...)" onchange="handleImageUrl(this)">
+                        <input type="hidden" id="inp-img-final">
+                        <div id="img-preview-box" style="width: 100px; height: 100px; background: #000; border: 1px solid #444; background-size: cover; background-position: center; display:none; margin-top:5px;"></div>
+                    </div>
+                </div>
+                
+                <div class="input-grid">
+                    <div class="form-group"><label>Name (이름)</label><input type="text" id="inp-name" placeholder="Character Name"></div>
+                    <div class="form-group">
+                        <label>Affiliation (팀/소속)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <select id="inp-team" style="flex:1;"></select>
+                            <div style="display:flex; align-items:center; color:#fff; font-size:12px;">
+                                <input type="checkbox" id="inp-leader"> LEADER
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Theme Color (고유 테마색)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="color" id="inp-theme-color" value="#00f0ff" style="width:50px; height:40px; padding:2px;">
+                            <span style="font-size:11px; color:#666;">* 이름 및 포인트 컬러로 사용됩니다.</span>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Gender (성별)</label><select id="inp-gender"><option value="Male">Male</option><option value="Female">Female</option><option value="Unknown">Unknown</option></select></div>
+                    <div class="form-group"><label>Age (나이)</label><input type="text" id="inp-age" placeholder="ex) 17"></div>
+                    <div class="form-group"><label>Birthplace (출생지)</label><input type="text" id="inp-origin" placeholder="Planet Name"></div>
+                    <div class="form-group"><label>Birthday (생일)</label><input type="text" id="inp-birth" placeholder="MM.DD"></div>
+                    <div class="form-group"><label>Height (신장)</label><input type="text" id="inp-height" placeholder="cm"></div>
+                    <div class="form-group"><label>Weight (체중)</label><input type="text" id="inp-weight" placeholder="kg"></div>
+                    <div class="form-group"><label>Blood Type (혈액형)</label><input type="text" id="inp-blood" placeholder="ex) O"></div>
+                    <div class="form-group"><label>Horoscope (별자리)</label><input type="text" id="inp-sign" placeholder="ex) Leo"></div>
+                    <div class="form-group"><label>Likes (좋아하는 것)</label><input type="text" id="inp-like" placeholder="Interests"></div>
+                    <div class="form-group"><label>Food Pref (식성)</label><input type="text" id="inp-food" placeholder="Favorite Food"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:15px;"><label>Catchphrase</label><input type="text" id="inp-catchphrase" placeholder="ex) 모든 방향은 내가 결정한다." style="color:var(--neon-blue); font-weight:bold;"></div>
+                <div class="form-group" style="margin-bottom:20px;"><label>Introduction</label><textarea id="inp-intro" rows="4" placeholder="캐릭터에 대한 상세한 소개글"></textarea></div>
+            </div>
+
+            <div id="edit-tab-2" class="edit-section">
+                <h2 style="color:var(--neon-blue); margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">STORY ARCHIVE</h2>
+                <div class="form-group" style="margin-bottom:15px;"><label>Personality (성격)</label><textarea id="inp-personality" rows="5" placeholder="성격 묘사"></textarea></div>
+                <div class="form-group" style="margin-bottom:15px;"><label>Background (과거/배경)</label><textarea id="inp-background" rows="5" placeholder="과거 이야기"></textarea></div>
+                <div class="form-group" style="margin-bottom:15px;"><label>Trivia (기타 설정)</label><input type="text" id="inp-trivia" placeholder="사소한 설정들"></div>
+            </div>
+
+            <div id="edit-tab-3" class="edit-section">
+                <h2 style="color:var(--neon-blue); margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">META SYSTEM</h2>
+                <div class="form-group" style="margin-bottom:15px;"><label>Meta Skill Name (원력 스킬명)</label><input type="text" id="inp-meta-name" placeholder="Skill Name" style="color:var(--neon-yellow); font-weight:bold;"></div>
+                <div class="form-group" style="margin-bottom:15px;"><label>Meta/Weapon Description</label><textarea id="inp-meta-desc" rows="3" placeholder="Description of weapon and ability"></textarea></div>
+
+                <h4 style="color: var(--neon-blue); margin-bottom: 10px; border-bottom: 1px solid #333; margin-top: 30px;">ABILITY PARAMETERS (0-10)</h4>
+                <div class="input-grid">
+                    <div class="form-group"><label>Attack (공격)</label><input type="number" id="inp-stat-atk" min="0" max="10" step="0.5"></div>
+                    <div class="form-group"><label>Defense (방어)</label><input type="number" id="inp-stat-def" min="0" max="10" step="0.5"></div>
+                    <div class="form-group"><label>Speed (속도)</label><input type="number" id="inp-stat-spd" min="0" max="10" step="0.5"></div>
+                    <div class="form-group"><label>Intelligence (지능)</label><input type="number" id="inp-stat-int" min="0" max="10" step="0.5"></div>
+                    <div class="form-group"><label>Potential (잠재력)</label><input type="number" id="inp-stat-pot" min="0" max="10" step="0.5"></div>
+                    <div class="form-group"><label>Survival (생존력)</label><input type="number" id="inp-stat-sur" min="0" max="10" step="0.5"></div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
+                <button onclick="saveCharacter()" class="btn-primary">REGISTER / UPDATE</button>
+                <button onclick="closeInputModal()" class="btn-secondary">CANCEL</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="catModal">
+    <div class="modal-content" style="max-width:400px; height:auto; display:block;">
+        <h2 style="color:var(--neon-yellow); margin-bottom:15px;">ADD CATEGORY</h2>
+        <div class="form-group" style="margin-bottom:10px;"><label>Category Name</label><input type="text" id="inp-cat-name" placeholder="ex) TEAM NEW"></div>
+        <div class="form-group" style="margin-bottom:20px;"><label>Category Color (Theme)</label><input type="color" id="inp-cat-color" value="#ffd700"></div>
+        <div style="display:flex; gap:10px;"><button onclick="addCategory()" class="btn-primary">ADD</button><button onclick="closeCatModal()" class="btn-secondary">CANCEL</button></div>
+    </div>
+</div>
+
+<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+    <div class="modal-content" style="max-width:500px; height:auto; display:block; padding: 30px;">
+        <h2 style="color:var(--neon-blue); margin-bottom:20px; border-bottom: 1px solid #333; padding-bottom:10px;">SYSTEM SETTINGS</h2>
+        
+        <h4 style="color:var(--neon-yellow); margin-bottom:10px;">REGISTER NEW OPERATOR</h4>
+        <div class="form-group"><label>New Access Code (접속 비밀번호)</label><input type="password" id="set-new-code" placeholder="Enter Secret Code"></div>
+        <div class="form-group"><label>Operator Name (닉네임)</label><input type="text" id="set-new-name" placeholder="Enter Operator Name"></div>
+        <button onclick="registerUser()" class="btn-primary" style="margin-bottom: 30px;">REGISTER USER</button>
+
+        <h4 style="color:var(--neon-yellow); margin-bottom:10px;">BACKGROUND MUSIC</h4>
+        <div class="form-group">
+            <label>BGM URL (MP3 Link)</label>
+            <input type="text" id="set-bgm-url" placeholder="https://example.com/music.mp3">
+            <p style="font-size:10px; color:#666; margin-top:5px;">* 유튜브 링크는 작동하지 않습니다. mp3 파일 주소를 입력하세요.</p>
+        </div>
+        <div class="form-group"><label>Volume</label><input type="range" id="set-bgm-vol" min="0" max="1" step="0.1" value="0.3" style="width:100%;" onchange="changeVolume(this.value)"></div>
+        
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button onclick="saveSettings()" class="btn-primary">SAVE SETTINGS</button>
+            <button onclick="closeSettings()" class="btn-secondary">CLOSE</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // [1] 데이터 베이스
+    let categoryDB = [
+        { name: 'TEAM KING', color: '#ffd700' },
+        { name: 'TEAM RAY', color: '#00ff88' },
+        { name: 'SOLO', color: '#888888' }
+    ];
+    let charDB = [
+        { 
+            id: 'char_001', name: 'ZERO', team: 'SOLO', isLeader: false, 
+            gender: 'Male', age: '17', origin: 'Mining Planet 7', birth: '12.25', 
+            height: '178cm', weight: '65kg', blood: 'AB', sign: 'Capricorn', 
+            like: 'Quiet places, Cubes', food: 'Energy Bar', 
+            metaName: 'Vector Hammer', metaDesc: '가해지는 충격의 방향을 임의로 비틀어 파괴력을 극대화함.', 
+            catchphrase: '모든 방향은 내가 결정한다.', 
+            intro: '과묵하고 냉철한 성격의 소유자. 과거 광산 행성에서의 기억 때문에 타인과의 교류를 꺼린다. 오직 자신의 목적을 달성하기 위해 대회에 참가했다.', 
+            personality: '#냉철함 #논리적 #마이웨이\n감정을 잘 드러내지 않으며 효율을 중시한다.', 
+            background: '광산 행성 7구역 출신. 붕괴 사고에서 유일하게 살아남았으며, 그 과정에서 원력의 각성을 경험했다.', 
+            trivia: '큐브 퍼즐을 맞추는 것이 취미. 쓴 커피를 싫어함.',
+            stats: { atk: 8, def: 6, spd: 9, int: 7, pot: 5, sur: 8 } 
+        },
+        { 
+            id: 'char_002', name: 'KAI', team: 'TEAM KING', isLeader: true, 
+            gender: 'Male', age: '18', origin: 'Thunder Planet', birth: '04.14', 
+            height: '182cm', weight: '72kg', blood: 'B', sign: 'Aries', 
+            like: 'Sparring, Strong opponents', food: 'Spicy Meat', 
+            metaName: 'Thunder Bolt', metaDesc: '신체 능력을 전기로 강화하며, 양손의 너클을 이용해 전격을 방출한다.', 
+            catchphrase: '막을 수 있다면 막아봐라.', 
+            intro: 'TEAM KING의 돌격대장. 생각보다는 주먹이 먼저 나가는 다혈질이지만, 동료를 생각하는 마음은 끔찍하다.', 
+            personality: '#열혈 #단순무식 #의리\n복잡한 것을 싫어하고 직관적으로 행동한다.', 
+            background: '어릴 적부터 싸움에 천부적인 재능을 보였다. 썬더 행성의 투기장에서 챔피언 자리에 올랐으나 더 강한 상대를 찾아 대회에 왔다.', 
+            trivia: '매운 음식을 먹으면 전기가 더 강해진다는 루머를 믿고 있다.',
+            stats: { atk: 9.5, def: 7, spd: 8, int: 4, pot: 8, sur: 9 }
+        }
+    ];
+    let termDB = [
+        { id: 't1', title: '원력 (Meta Energy)', content: '참가자가 시스템으로부터 부여받는 고유한 잠재 능력. 각자의 성격이나 소망에 따라 형태가 결정됩니다.', isEditing: false },
+        { id: 't2', title: '심판관 (Arbitrators)', content: '대회의 공정성을 관리(하는 척 하는) 창세신의 대리인들. 강력한 권한을 가집니다.', isEditing: false }
+    ];
+    let relationDB = [
+        { source: 'char_001', target: 'char_002', type: 'hostile', memo: '시끄러워서 싫음' },
+        { source: 'char_002', target: 'char_001', type: 'hostile', memo: '재수없는 녀석' }
+    ];
+
+    const relColorMap = {
+        'lover': '#ff69b4', 'crush': '#ffb6c1', 'best_friend': '#00ff00',
+        'friend': '#00ff88', 'like': '#ff7f50', 'family': '#ffa500',
+        'friendly': '#00f0ff', 'hostile': '#ff4444', 'hate': '#8b0000'
+    };
+    const relLabelMap = {
+        'lover': 'LOVER', 'crush': 'CRUSH', 'best_friend': 'BEST FRIEND',
+        'friend': 'FRIEND', 'like': 'LIKE', 'family': 'FAMILY',
+        'friendly': 'FRIENDLY', 'hostile': 'HOSTILE', 'hate': 'HATE'
+    };
+
+    let currentFilter = 'ALL';
+    let currentRelChar = null;
+    let currentDetailId = null;
+    let currentActiveTab = 1; // [NEW] 현재 보고 있는 탭 추적
+
+    // 시스템 설정 (BGM 등)
+    let globalConfig = {
+        bgmUrl: "https://t1.daumcdn.net/cfile/tistory/994D5C485C8EEF791E?original", // 기본 BGM (예시)
+        volume: 0.3
+    };
+
+window.onload = function() {
+        loadAllData();
+        renderCategories();
+        renderCharList();
+        renderTerms();
+        renderRelSidebar();
+        renderLegend();
+        
+        const isAuth = sessionStorage.getItem('authorized');
+        const savedUser = sessionStorage.getItem('currentUser');
+        if (isAuth === 'true' && savedUser) {
+            updateUserUI(savedUser);
+        }
+    }
+
+async function saveAllData() {
+        const data = {
+            charDB: charDB,
+            categoryDB: categoryDB,
+            termDB: termDB,
+            relationDB: relationDB,
+            userDB: userDB,         // [추가]
+            globalConfig: globalConfig // [추가]
+        };
+        localStorage.setItem('aotu_world_data', JSON.stringify(data));
+        
+        if(window.saveToFirebase) {
+            await window.saveToFirebase(data);
+        }
+    }
+
+    function loadAllData() {
+        const saved = localStorage.getItem('aotu_world_data');
+        if (saved) {
+            const data = JSON.parse(saved);
+            charDB = data.charDB || charDB;
+            categoryDB = data.categoryDB || categoryDB;
+            termDB = data.termDB || termDB;
+            relationDB = data.relationDB || relationDB;
+            userDB = data.userDB || userDB;             // [추가]
+            globalConfig = data.globalConfig || globalConfig; // [추가]
+        }
+    }
+
+    // --- RENDER CATEGORY ---
+    function renderCategories() {
+        const container = document.getElementById('category-filter-container');
+        container.innerHTML = '';
+        const allBtn = document.createElement('div');
+        allBtn.className = `filter-tag`;
+        if(currentFilter === 'ALL') {
+             allBtn.classList.add('active');
+             allBtn.style.color = '#fff';
+             allBtn.style.borderColor = '#fff';
+        }
+        allBtn.innerText = 'ALL';
+        allBtn.onclick = () => { currentFilter = 'ALL'; renderCategories(); renderCharList(); };
+        container.appendChild(allBtn);
+
+        categoryDB.forEach(cat => {
+            const btn = document.createElement('div');
+            btn.className = `filter-tag`;
+            if(currentFilter === cat.name) {
+                btn.classList.add('active');
+                btn.style.color = cat.color;
+                btn.style.borderColor = cat.color;
+                btn.style.background = hexToRgba(cat.color, 0.1);
+            }
+            btn.innerHTML = `<span onclick="filterBy('${cat.name}')">${cat.name}</span><span class="del-cat-btn" onclick="deleteCategory('${cat.name}')">×</span>`;
+            container.appendChild(btn);
+        });
+    }
+
+    function hexToRgba(hex, alpha) {
+        let r = 0, g = 0, b = 0;
+        if (hex.length == 7) {
+            r = parseInt(hex.slice(1,3), 16);
+            g = parseInt(hex.slice(3,5), 16);
+            b = parseInt(hex.slice(5,7), 16);
+        }
+        return "rgba("+ r + "," + g + "," + b + "," + alpha + ")";
+    }
+
+    function filterBy(catName) { currentFilter = catName; renderCategories(); renderCharList(); }
+    function openCatModal() { document.getElementById('catModal').style.display = 'flex'; }
+    function closeCatModal() { document.getElementById('catModal').style.display = 'none'; }
+    function addCategory() {
+        const name = document.getElementById('inp-cat-name').value;
+        const color = document.getElementById('inp-cat-color').value;
+
+        if(name && !categoryDB.some(c => c.name === name)) { 
+            categoryDB.push({ name: name, color: color }); 
+            renderCategories(); 
+            saveAllData();
+            closeCatModal(); 
+            document.getElementById('inp-cat-name').value = ''; 
+        } else { alert('유효하지 않거나 이미 존재하는 카테고리입니다.'); }
+    }
+    function deleteCategory(catName) {
+        if(confirm(`"${catName}" 카테고리를 삭제하시겠습니까?`)) { 
+            categoryDB = categoryDB.filter(c => c.name !== catName); 
+            if(currentFilter === catName) currentFilter = 'ALL'; 
+            saveAllData();
+            renderCategories(); renderCharList(); 
+        }
+    }
+
+    // --- RENDER CHARACTER LIST ---
+   function renderCharList() {
+        const container = document.getElementById('char-grid-container');
+        container.innerHTML = ''; 
+        const filtered = currentFilter === 'ALL' ? charDB : charDB.filter(c => c.team === currentFilter);
+        filtered.forEach(char => {
+            const card = document.createElement('article');
+            card.className = 'char-card';
+            card.onclick = (e) => { if(!e.target.classList.contains('card-delete-btn')) openDetail(char.id); };
+            
+            let teamColor = '#ffd700';
+            const catObj = categoryDB.find(c => c.name === char.team);
+            if(catObj) teamColor = catObj.color;
+            
+            const bgStyle = char.image ? `background-image: url('${char.image}');` : '';
+
+            card.innerHTML = `
+            <button class="card-delete-btn" onclick="deleteCharacter('${char.id}')">✕</button>
+            <div class="card-team-icon" style="border-color:${teamColor}; color:${teamColor};">◆</div>
+            <div class="card-img" style="${bgStyle}"></div>
+            <div class="card-info">
+                <span class="card-name">${char.name}</span>
+                <span class="card-meta" style="color:${teamColor}">${char.team}</span>
+                <div style="font-size:10px; color:#555; margin-top:10px;">${char.metaName}</div>
+            </div>`;
+            container.appendChild(card);
+        });
+    }
+
+    function deleteCharacter(id) {
+        if(confirm("정말로 이 데이터를 아카이브에서 삭제하시겠습니까?")) {
+            charDB = charDB.filter(c => c.id !== id);
+            relationDB = relationDB.filter(r => r.source !== id && r.target !== id);
+            saveAllData();
+            renderCharList(); renderRelSidebar();
+        }
+    }
+
+    // --- CHARACTER INPUT & SAVE ---
+function saveCharacter() {
+        const id = document.getElementById('inp-id').value || ('char_' + Date.now());
+        const name = document.getElementById('inp-name').value;
+        const team = document.getElementById('inp-team').value;
+        
+        if (!name) { alert('이름을 입력해주세요.'); return; }
+
+        const newChar = {
+            id: id,
+            name: name,
+            team: team,
+            image: document.getElementById('inp-img-final').value || '', 
+            isLeader: document.getElementById('inp-leader').checked,
+            themeColor: document.getElementById('inp-theme-color').value,
+            gender: document.getElementById('inp-gender').value,
+            age: document.getElementById('inp-age').value,
+            origin: document.getElementById('inp-origin').value,
+            birth: document.getElementById('inp-birth').value,
+            height: document.getElementById('inp-height').value,
+            weight: document.getElementById('inp-weight').value,
+            blood: document.getElementById('inp-blood').value,
+            sign: document.getElementById('inp-sign').value,
+            like: document.getElementById('inp-like').value,
+            food: document.getElementById('inp-food').value,
+            metaName: document.getElementById('inp-meta-name').value,
+            metaDesc: document.getElementById('inp-meta-desc').value,
+            catchphrase: document.getElementById('inp-catchphrase').value,
+            intro: document.getElementById('inp-intro').value,
+            personality: document.getElementById('inp-personality').value,
+            background: document.getElementById('inp-background').value,
+            trivia: document.getElementById('inp-trivia').value,
+            stats: {
+                atk: Number(document.getElementById('inp-stat-atk').value) || 0,
+                def: Number(document.getElementById('inp-stat-def').value) || 0,
+                spd: Number(document.getElementById('inp-stat-spd').value) || 0,
+                int: Number(document.getElementById('inp-stat-int').value) || 0,
+                pot: Number(document.getElementById('inp-stat-pot').value) || 0,
+                sur: Number(document.getElementById('inp-stat-sur').value) || 0
+            }
+        };
+        
+        const idx = charDB.findIndex(c => c.id === id);
+        if (idx !== -1) { charDB[idx] = newChar; } else { charDB.push(newChar); }
+
+        saveAllData();
+        renderCharList();
+        renderRelSidebar();
+        closeInputModal();
+        
+        if(currentDetailId === id) openDetail(id);
+    }
+
+    function switchTab(tabIdx) {
+        currentActiveTab = tabIdx; // [NEW] 현재 탭 저장
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        const buttons = document.querySelectorAll('.tab-btn');
+        if (buttons[tabIdx - 1]) buttons[tabIdx - 1].classList.add('active');
+        
+        const targetContent = document.getElementById('tab-' + tabIdx);
+        if (targetContent) targetContent.classList.add('active');
+
+        if (tabIdx === 3) {
+            setTimeout(drawStats, 100); 
+        }
+    }
+    
+    // [NEW] 펜 버튼 누르면 현재 탭에 맞는 에디트 화면 열기
+    function openEditForCurrentTab() {
+        // Relation 탭(4)일 경우엔 기본(1)로 열거나, 관계설정은 리스트에서 하므로 1번으로 유도
+        const targetTab = (currentActiveTab === 4) ? 1 : currentActiveTab;
+        openInputModal(currentDetailId, targetTab);
+    }
+
+    function renderDetailRelations(charId) {
+        const tbody = document.getElementById('detail-rel-tbody');
+        tbody.innerHTML = '';
+
+        const related = relationDB.filter(r => r.source === charId || r.target === charId);
+
+        related.forEach(rel => {
+            const otherId = (rel.source === charId) ? rel.target : rel.source;
+            const otherChar = charDB.find(c => c.id === otherId);
+            
+            if (otherChar) {
+                const tr = document.createElement('tr');
+                const typeColor = relColorMap[rel.type] || '#ccc';
+                const typeLabel = relLabelMap[rel.type] || rel.type;
+
+                tr.innerHTML = `
+                    <td style="color:#fff; font-weight:bold;">${otherChar.name}</td>
+                    <td><span class="rel-badge" style="color:${typeColor}; border:1px solid ${typeColor}">${typeLabel}</span></td>
+                    <td style="color:#aaa;">${rel.memo}</td>
+                    <td>
+                        <button class="btn-del" onclick="removeRelation('${rel.source}', '${rel.target}')">✕</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+
+        const select = document.getElementById('new-rel-target');
+        select.innerHTML = '';
+        charDB.forEach(c => {
+            if(c.id !== charId) {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = c.name;
+                select.appendChild(opt);
+            }
+        });
+    }
+
+    // --- CHARACTER DETAIL VIEW ---
+function openDetail(id) {
+        currentDetailId = id;
+        const char = charDB.find(c => c.id === id);
+        if(!char) return;
+        
+        showSection('detail'); 
+        switchTab(1); // 기본 1번 탭
+        
+        let teamColor = '#ffd700';
+        const catObj = categoryDB.find(c => c.name === char.team);
+        if(catObj) teamColor = catObj.color;
+        const charTheme = char.themeColor || '#00f0ff';
+
+        const nameEl = document.getElementById('detail-name');
+        nameEl.innerText = char.name;
+        nameEl.style.color = charTheme;      
+        nameEl.style.textShadow = `0 0 20px ${charTheme}`; 
+
+        const bgNameEl = document.getElementById('detail-name-bg');
+        bgNameEl.innerText = char.name.toUpperCase();
+        bgNameEl.style.color = '#ffffff'; 
+        bgNameEl.style.opacity = '0.1';   
+
+const charImgEl = document.getElementById('detail-char-img');
+    charImgEl.innerHTML = ''; 
+    if(char.image) {
+        const imgTag = document.createElement('img');
+        imgTag.src = char.image;
+        // imgTag.style.display = 'block'; // 필요시 추가
+        charImgEl.appendChild(imgTag);
+    }
+        document.getElementById('detail-catchphrase').innerText = `"${char.catchphrase || 'No Catchphrase'}"`;
+        document.getElementById('detail-intro').innerText = char.intro || 'No Introduction.';
+        
+        const profileList = document.getElementById('detail-profile-list');
+        profileList.innerHTML = `<li><b>Gender:</b> ${char.gender}</li><li><b>Age:</b> ${char.age}</li><li><b>Birth:</b> ${char.birth}</li><li><b>Origin:</b> ${char.origin}</li><li><b>Height:</b> ${char.height}</li><li><b>Weight:</b> ${char.weight}</li><li><b>Blood:</b> ${char.blood}</li><li><b>Sign:</b> ${char.sign}</li><li><b>Likes:</b> ${char.like}</li><li><b>Food:</b> ${char.food}</li>`;
+
+        document.getElementById('detail-personality').innerText = char.personality || 'No Data';
+        document.getElementById('detail-background').innerText = char.background || 'No Data';
+        document.getElementById('detail-trivia').innerText = char.trivia || '-';
+        
+        const metaNameEl = document.getElementById('detail-meta-name');
+        metaNameEl.innerText = char.metaName;
+        metaNameEl.style.color = charTheme; 
+
+        document.getElementById('detail-meta-desc').innerText = char.metaDesc;
+        
+        renderDetailRelations(char.id);
+    }
+
+    function addRelation() {
+        if(!currentDetailId) return;
+        const targetId = document.getElementById('new-rel-target').value;
+        const type = document.getElementById('new-rel-type').value;
+        const memo = document.getElementById('new-rel-memo').value;
+
+        if(!targetId) { alert('대상을 선택해주세요.'); return; }
+
+        const exists = relationDB.some(r => 
+            (r.source === currentDetailId && r.target === targetId) || 
+            (r.source === targetId && r.target === currentDetailId)
+        );
+
+        if(exists) {
+            alert('이미 관계가 설정된 캐릭터입니다. 수정하려면 기존 관계를 삭제해주세요.');
+            return;
+        }
+
+        relationDB.push({ source: currentDetailId, target: targetId, type: type, memo: memo });
+        document.getElementById('new-rel-memo').value = '';
+        renderDetailRelations(currentDetailId);
+        
+        if(currentRelChar) drawDynamicRelations(currentRelChar);
+        saveAllData();
+    }
+
+    function removeRelation(s, t) {
+        if(confirm('이 관계를 삭제하시겠습니까?')) {
+            relationDB = relationDB.filter(r => !(r.source === s && r.target === t));
+            renderDetailRelations(currentDetailId);
+            if(currentRelChar) drawDynamicRelations(currentRelChar);
+            saveAllData();
+        }
+    }
+
+    // --- MODAL ---
+    function openInputModal(editId = null, startTab = 1) {
+        const modal = document.getElementById('inputModal');
+        const previewBox = document.getElementById('img-preview-box');
+        
+        const teamSelect = document.getElementById('inp-team');
+        teamSelect.innerHTML = '';
+        categoryDB.forEach(cat => { 
+            const opt = document.createElement('option'); 
+            opt.value = cat.name; 
+            opt.innerText = cat.name; 
+            teamSelect.appendChild(opt); 
+        });
+        
+        document.getElementById('inp-id').value = editId ? editId : '';
+
+        if(editId) {
+            const char = charDB.find(c => c.id === editId);
+            document.getElementById('inp-name').value = char.name; 
+            document.getElementById('inp-img-final').value = char.image || '';
+            document.getElementById('inp-img-url').value = '';
+            
+            if(char.image) {
+                previewBox.style.display = 'block';
+                previewBox.style.backgroundImage = `url('${char.image}')`;
+            } else {
+                previewBox.style.display = 'none';
+            }
+            teamSelect.value = char.team; 
+            document.getElementById('inp-leader').checked = char.isLeader === true;
+            document.getElementById('inp-gender').value = char.gender; 
+            document.getElementById('inp-age').value = char.age;
+            document.getElementById('inp-origin').value = char.origin; 
+            document.getElementById('inp-birth').value = char.birth;
+            document.getElementById('inp-height').value = char.height; 
+            document.getElementById('inp-weight').value = char.weight;
+            document.getElementById('inp-blood').value = char.blood; 
+            document.getElementById('inp-sign').value = char.sign;
+            document.getElementById('inp-like').value = char.like; 
+            document.getElementById('inp-food').value = char.food;
+            document.getElementById('inp-meta-name').value = char.metaName; 
+            document.getElementById('inp-meta-desc').value = char.metaDesc;
+            document.getElementById('inp-catchphrase').value = char.catchphrase || ''; 
+            document.getElementById('inp-intro').value = char.intro || '';
+            document.getElementById('inp-personality').value = char.personality || ''; 
+            document.getElementById('inp-background').value = char.background || '';
+            document.getElementById('inp-trivia').value = char.trivia || '';
+            document.getElementById('inp-theme-color').value = char.themeColor || '#00f0ff';
+
+            const s = char.stats || { atk:5, def:5, spd:5, int:5, pot:5, sur:5 };
+            document.getElementById('inp-stat-atk').value = s.atk;
+            document.getElementById('inp-stat-def').value = s.def;
+            document.getElementById('inp-stat-spd').value = s.spd;
+            document.getElementById('inp-stat-int').value = s.int;
+            document.getElementById('inp-stat-pot').value = s.pot;
+            document.getElementById('inp-stat-sur').value = s.sur;
+
+        } else {
+            document.querySelectorAll('#inputModal input, #inputModal textarea').forEach(el => {
+                if(el.type !== 'checkbox' && el.type !== 'color' && el.type !== 'hidden') el.value = '';
+            });
+            document.getElementById('inp-gender').value = 'Male'; 
+            if(categoryDB.length > 0) teamSelect.value = categoryDB[0].name;
+            document.getElementById('inp-leader').checked = false;
+            document.getElementById('inp-theme-color').value = '#00f0ff'; 
+            document.getElementById('inp-img-final').value = '';
+            document.getElementById('inp-img-url').value = '';
+            previewBox.style.display = 'none';
+
+            document.getElementById('inp-stat-atk').value = 5;
+            document.getElementById('inp-stat-def').value = 5;
+            document.getElementById('inp-stat-spd').value = 5;
+            document.getElementById('inp-stat-int').value = 5;
+            document.getElementById('inp-stat-pot').value = 5;
+            document.getElementById('inp-stat-sur').value = 5;
+        }
+        
+        switchEditTab(startTab); // 모달 열릴 때 원하는 탭으로 시작
+        modal.style.display = 'flex';
+    }
+    
+    function closeInputModal() { document.getElementById('inputModal').style.display = 'none'; }
+    
+    // [NEW] 모달 내부 탭 전환
+    function switchEditTab(idx) {
+        document.querySelectorAll('.edit-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('edit-tab-' + idx).classList.add('active');
+        
+        document.querySelectorAll('.modal-nav-btn').forEach((btn, i) => {
+            if(i === idx - 1) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    // --- TERM ACCORDION ---
+    function renderTerms() {
+        const container = document.getElementById('term-accordion'); container.innerHTML = '';
+        termDB.forEach(term => {
+            const item = document.createElement('div'); item.className = 'accordion-item';
+            if(term.isEditing) {
+                item.classList.add('open');
+                item.innerHTML = `<div class="accordion-header" style="cursor:default;"><input type="text" class="inline-input-title" id="edit-title-${term.id}" value="${term.title}"><div class="term-controls"><button class="term-btn save" onclick="saveTermInline('${term.id}')">✓</button><button class="term-btn cancel" onclick="cancelTermInline('${term.id}')">✕</button></div></div><div class="accordion-content" style="padding:15px; max-height:none; border-top:1px solid #333;"><textarea class="inline-input-desc" id="edit-desc-${term.id}">${term.content}</textarea></div>`;
+            } else {
+                item.innerHTML = `<div class="accordion-header" onclick="toggleAccordion(this)"><span>${term.title}</span><div class="term-controls" onclick="event.stopPropagation()"><button class="term-btn edit" onclick="enableTermEdit('${term.id}')">✎</button><button class="term-btn del" onclick="deleteTermInline('${term.id}')">🗑</button></div></div><div class="accordion-content">${term.content}</div>`;
+            }
+            container.appendChild(item);
+        });
+    }
+    function toggleAccordion(header) { header.parentElement.classList.toggle('open'); }
+    function addNewTermInline() { const newId = 't' + Date.now(); termDB.unshift({ id: newId, title: 'New Term', content: '', isEditing: true }); renderTerms(); }
+    function enableTermEdit(id) { const idx = termDB.findIndex(t => t.id === id); if(idx !== -1) { termDB[idx].isEditing = true; renderTerms(); } }
+    function cancelTermInline(id) { const idx = termDB.findIndex(t => t.id === id); if(idx !== -1) { if(termDB[idx].title === 'New Term' && termDB[idx].content === '') termDB.splice(idx, 1); else termDB[idx].isEditing = false; renderTerms(); } }
+    function saveTermInline(id) { const idx = termDB.findIndex(t => t.id === id); if(idx !== -1) { termDB[idx].title = document.getElementById(`edit-title-${id}`).value; termDB[idx].content = document.getElementById(`edit-desc-${id}`).value; termDB[idx].isEditing = false; renderTerms(); saveAllData(); } }
+    function deleteTermInline(id) { if(confirm('삭제하시겠습니까?')) { termDB = termDB.filter(t => t.id !== id); renderTerms(); saveAllData(); } }
+
+    // --- RELATION GRAPH ---
+    function renderRelSidebar() {
+        const list = document.getElementById('rel-sidebar-list'); list.innerHTML = '';
+        charDB.forEach(char => {
+            const item = document.createElement('div'); item.className = 'rel-char-item';
+            item.onclick = () => selectRelChar(char.id, item);
+            item.innerHTML = `<div class="rel-char-thumb"></div><span>${char.name}</span>`;
+            list.appendChild(item);
+        });
+    }
+
+    function renderLegend() {
+        const box = document.getElementById('rel-legend');
+        box.innerHTML = `<div style="color:var(--neon-blue); font-weight:bold; margin-bottom:10px; border-bottom:1px solid #555; padding-bottom:5px;">LEGEND</div>`;
+        for (const [type, color] of Object.entries(relColorMap)) {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            item.innerHTML = `<div class="legend-color" style="background:${color};"></div> <span>${relLabelMap[type]}</span>`;
+            box.appendChild(item);
+        }
+    }
+
+    function selectRelChar(id, el) {
+        document.querySelectorAll('.rel-char-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active'); currentRelChar = id; drawDynamicRelations(id);
+    }
+    
+    function drawDynamicRelations(centerId) {
+        const wrap = document.getElementById('rel-canvas-wrap');
+        const canvas = document.getElementById('relCanvas');
+        const nodeContainer = document.getElementById('rel-nodes-container');
+        const ctx = canvas.getContext('2d');
+        canvas.width = wrap.offsetWidth; canvas.height = wrap.offsetHeight;
+        nodeContainer.innerHTML = ''; 
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const centerChar = charDB.find(c => c.id === centerId);
+        if(!centerChar) return;
+
+        createRelNode(centerX, centerY, centerChar.name, true);
+
+        const processedNodes = new Set();
+        processedNodes.add(centerId);
+
+        const related = relationDB.filter(r => r.source === centerId || r.target === centerId);
+        const uniqueRelated = [];
+        related.forEach(rel => {
+            const otherId = rel.source === centerId ? rel.target : rel.source;
+            if (!processedNodes.has(otherId)) {
+                processedNodes.add(otherId);
+                uniqueRelated.push({ ...rel, otherId }); 
+            }
+        });
+
+        const count = uniqueRelated.length;
+        const radius = 180; 
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+
+        uniqueRelated.forEach((rel, i) => {
+            const otherChar = charDB.find(c => c.id === rel.otherId);
+            if(!otherChar) return;
+
+            const angle = (Math.PI * 2 / count) * i - Math.PI/2;
+            const x = centerX + Math.cos(angle) * radius;
+            const y = centerY + Math.sin(angle) * radius;
+
+            ctx.beginPath();
+            ctx.strokeStyle = relColorMap[rel.type] || '#ccc';
+            ctx.lineWidth = 2;
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            createRelNode(x, y, otherChar.name, false, rel.type);
+        });
+    }
+
+    function createRelNode(x, y, text, isMain, type='') {
+        const node = document.createElement('div');
+        node.className = `rel-node ${isMain ? 'main' : ''}`;
+        node.style.left = x + 'px'; node.style.top = y + 'px';
+        node.style.transform = 'translate(-50%, -50%)';
+        node.innerText = text;
+        if(!isMain) {
+            const tag = document.createElement('span');
+            tag.style.position = 'absolute'; tag.style.bottom = '-20px';
+            tag.style.fontSize = '10px';
+            tag.style.whiteSpace = 'nowrap';
+            tag.style.color = relColorMap[type] || '#fff';
+            tag.innerText = relLabelMap[type] || type.toUpperCase();
+            node.appendChild(tag);
+        }
+        document.getElementById('rel-nodes-container').appendChild(node);
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const navMap = {'list':0, 'world':1, 'relation':2};
+        if(navMap[id] !== undefined) document.querySelectorAll('.sidebar .nav-btn')[navMap[id]].classList.add('active');
+        if(id === 'relation' && currentRelChar) drawDynamicRelations(currentRelChar);
+    }
+
+    function drawStats() {
+        const c = document.getElementById("statCanvas"); 
+        if(!c || !currentDetailId) return;
+
+        const char = charDB.find(x => x.id === currentDetailId);
+        const stats = char.stats || { atk: 5, def: 5, spd: 5, int: 5, pot: 5, sur: 5 };
+        
+        const dataValues = [
+            stats.atk/10, stats.def/10, stats.spd/10, 
+            stats.int/10, stats.pot/10, stats.sur/10
+        ];
+        const labels = ["ATTACK", "DEFENSE", "SPEED", "INTELLIGENCE", "POTENTIAL", "SURVIVAL"];
+
+        const ctx = c.getContext("2d"); 
+        const w = 350, h = 350; 
+        const cx = w/2, cy = h/2, r = 100;
+
+        ctx.clearRect(0,0,w,h);
+        
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.2)"; 
+        ctx.lineWidth = 1;
+        
+        for(let j=1; j<=5; j++){ 
+            ctx.beginPath(); 
+            let sr = r * (j/5); 
+            for(let i=0; i<6; i++){ 
+                let a = (Math.PI/3)*i - Math.PI/2; 
+                const x = cx + sr*Math.cos(a); 
+                const y = cy + sr*Math.sin(a); 
+                if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y); 
+            } 
+            ctx.closePath(); 
+            ctx.stroke(); 
+        }
+
+        ctx.beginPath(); 
+        dataValues.forEach((s, i) => { 
+            let a = (Math.PI/3)*i - Math.PI/2; 
+            const x = cx + s*r*Math.cos(a);
+            const y = cy + s*r*Math.sin(a);
+            if(i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y); 
+        });
+        ctx.closePath(); 
+        ctx.fillStyle = "rgba(0, 240, 255, 0.4)"; 
+        ctx.fill(); 
+        ctx.strokeStyle = "var(--neon-blue)"; 
+        ctx.lineWidth = 2; 
+        ctx.stroke();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 11px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        labels.forEach((label, i) => {
+            let a = (Math.PI/3)*i - Math.PI/2;
+            const x = cx + (r + 40) * Math.cos(a);
+            const y = cy + (r + 40) * Math.sin(a);
+            ctx.fillText(label, x, y);
+        });
+    }
+
+    window.addEventListener('resize', () => { if(currentRelChar) drawDynamicRelations(currentRelChar); });
+
+// 기존 USER_KEYS 대신 userDB 사용
+let userDB = JSON.parse(localStorage.getItem('aotu_user_db')) || [
+    { code: "0102M", name: "모렌" },
+    { code: "AdAstra", name: "아스트라" }
+];
+
+window.checkPassword = function() {
+    const input = document.getElementById('site-password').value.trim();
+    const foundUser = userDB.find(u => u.code === input);
+
+    if (foundUser) {
+        // --- 음악 재생 로직 시작 ---
+        const audio = document.getElementById('bgm-player');
+        if (audio) {
+            // 설정된 BGM URL이 있으면 적용, 없으면 기본값
+            audio.src = globalConfig.bgmUrl || "여기에_기본_MP3_링크_입력"; 
+            audio.volume = globalConfig.volume || 0.5;
+            
+            // 브라우저 정책상 클릭(비밀번호 확인) 시점에 play()를 호출해야 바로 재생됨
+            audio.play().catch(e => console.log("재생 대기 중..."));
+        }
+        // --- 음악 재생 로직 끝 ---
+
+        alert("SYSTEM ACCESS GRANTED.\n환영합니다, " + foundUser.name + "님.");
+        sessionStorage.setItem('authorized', 'true');
+        sessionStorage.setItem('currentUser', foundUser.name);
+        
+        // 메인 화면 UI 업데이트 및 오버레이 숨기기
+        updateUserUI(foundUser.name);
+        document.getElementById('password-overlay').style.display = 'none'; // 비밀번호 창 닫기
+    } else {
+        document.getElementById('pw-error').style.display = 'block';
+        document.getElementById('site-password').value = ''; 
+    }
+}
+
+// 신규 유저 등록 함수
+function registerUser() {
+    const newCode = document.getElementById('set-new-code').value.trim();
+    const newName = document.getElementById('set-new-name').value.trim();
+
+    if(!newCode || !newName) {
+        alert("코드와 닉네임을 모두 입력해주세요.");
+        return;
+    }
+    
+    if(userDB.some(u => u.code === newCode)) {
+        alert("이미 존재하는 접속 코드입니다.");
+        return;
+    }
+
+    userDB.push({ code: newCode, name: newName });
+    localStorage.setItem('aotu_user_db', JSON.stringify(userDB)); // 로컬 스토리지 저장
+    alert(`[등록 완료] 이제 '${newCode}' 코드로 접속할 수 있습니다.`);
+    
+    document.getElementById('set-new-code').value = '';
+    document.getElementById('set-new-name').value = '';
+}
+
+function updateUserUI(userName) {
+    const statusDiv = document.getElementById('user-status');
+    const nameDisplay = document.getElementById('user-name-display')
+    const loginScreen = document.getElementById('password-overlay'); 
+
+    if (userName) {
+        if(nameDisplay) nameDisplay.innerText = userName;
+        if(statusDiv) statusDiv.style.display = 'flex';
+        
+        // 로그인 화면 숨기기
+        if(loginScreen) loginScreen.style.display = 'none';
+    }
+}
+
+function toggleMusic() {
+    const btn = document.getElementById('music-toggle-btn');
+    const viz = document.getElementById('music-viz');
+
+    if (!player || typeof player.getPlayerState !== 'function') {
+        alert("시스템: 유튜브 플레이어가 아직 준비되지 않았습니다.");
+        return;
+    }
+
+    const state = player.getPlayerState();
+
+    if (state === YT.PlayerState.PLAYING) {
+        // 재생 중이면 일시정지
+        player.pauseVideo();
+        btn.innerText = "▶";
+        viz.classList.add('music-paused');
+    } else {
+        // 정지/일시정지 중이면 재생
+        player.playVideo();
+        btn.innerText = "■";
+        viz.classList.remove('music-paused');
+    }
+}
+
+    // --- [NEW] SETTINGS MODAL ---
+    function openSettings() {
+        document.getElementById('set-new-code').value = '';
+        document.getElementById('set-new-name').value = '';
+        document.getElementById('set-bgm-url').value = globalConfig.bgmUrl || '';
+        document.getElementById('set-bgm-vol').value = globalConfig.volume || 0.3;
+        document.getElementById('settingsModal').style.display = 'flex';
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    function registerUser() {
+        const newCode = document.getElementById('set-new-code').value.trim();
+        const newName = document.getElementById('set-new-name').value.trim();
+
+        if(!newCode || !newName) {
+            alert("코드와 닉네임을 모두 입력해주세요.");
+            return;
+        }
+        
+        // 중복 체크
+        if(userDB.some(u => u.code === newCode)) {
+            alert("이미 존재하는 접속 코드입니다.");
+            return;
+        }
+
+        userDB.push({ code: newCode, name: newName });
+        saveAllData();
+        alert(`[등록 완료]\nOperator: ${newName}\nCode: ${newCode}\n이제 이 코드로 접속할 수 있습니다.`);
+        
+        // 입력창 초기화
+        document.getElementById('set-new-code').value = '';
+        document.getElementById('set-new-name').value = '';
+    }
+
+    function saveSettings() {
+        const url = document.getElementById('set-bgm-url').value.trim();
+        const vol = document.getElementById('set-bgm-vol').value;
+
+        globalConfig.bgmUrl = url;
+        globalConfig.volume = vol;
+        saveAllData();
+
+        // 오디오 즉시 반영
+        const audio = document.getElementById('bgm-player');
+        if(audio.src !== url) {
+            audio.src = url;
+            // URL이 바뀌면 재생 중지 상태가 되므로 다시 재생 필요 여부 확인
+            // 여기서는 안전하게 멈춤 상태로 둡니다.
+        }
+        audio.volume = vol;
+        
+        closeSettings();
+        alert("시스템 설정이 저장되었습니다.");
+    }
+
+/* --- [REFINED] YOUTUBE AUDIO SYSTEM --- */
+let player; // 유튜브 플레이어 변수
+    
+    // 1. 유튜브 API 스크립트를 강제로 로드하는 코드 (이게 없어서 작동 안 했던 것임)
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // 2. 유튜브 URL에서 ID 추출 (더 강력한 정규식으로 수정)
+    function extractVideoId(url) {
+        if (!url) return null;
+        // youtu.be, youtube.com, ?si= 파라미터 등 다양한 케이스 대응
+        var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        var match = url.match(regExp);
+        return (match && match[7].length == 11) ? match[7] : false;
+    }
+
+    // 3. API 준비 완료 시 자동 실행되는 함수 (window에 명시적 선언)
+window.onYouTubeIframeAPIReady = function() {
+        console.log("✅ 유튜브 API 로드 완료");
+        
+        // [중요] 영상 ID 교체
+        // 기존: '9mU-JZFp93A' (재생 차단됨)
+        // 변경 추천: '5wF35Q12g3w' (테스트용: 저작권 없는 배경음악) 
+        // 혹은 요철세계의 다른 영상 ID를 찾아 넣어보세요.
+        
+        let savedId = extractVideoId(globalConfig.bgmUrl);
+        
+        if(!savedId || savedId === '9mU-JZFp93A') {
+             savedId = '5qap5aO4i9A'; // (예시: Lofi hip hop 라디오 - 재생 잘 됨)
+        }
+
+        player = new YT.Player('youtube-player', {
+            height: '0',
+            width: '0',
+            videoId: savedId, // 여기에 재생 가능한 ID가 들어가야 합니다.
+            playerVars: {
+                'autoplay': 0,
+                'controls': 0,
+                'loop': 1,
+                'playlist': savedId,
+                'origin': window.location.origin // 이 줄을 추가하면 노란색 경고가 줄어듭니다.
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onError': (e) => {
+                    console.error("❌ 유튜브 에러:", e);
+                    if(e.data === 150 || e.data === 101 || e.data === 153) {
+                        alert("이 영상은 유튜브 밖에서 재생할 수 없습니다. 다른 배경음악 주소를 넣어주세요.");
+                    }
+                }
+            }
+        });
+    };
+
+    function onPlayerReady(event) {
+        console.log("✅ 플레이어 준비 완료 (재생 가능)");
+        // 볼륨 설정
+        if(event.target && event.target.setVolume) {
+            event.target.setVolume(globalConfig.volume * 100);
+        }
+    }
+
+    // 재생/일시정지 토글 버튼
+    window.toggleMusic = function() {
+        const btn = document.getElementById('music-toggle-btn');
+        const viz = document.getElementById('music-viz');
+
+        if (!player || typeof player.getPlayerState !== 'function') {
+            alert("시스템: 유튜브 로딩 중입니다. 잠시 후 다시 시도해주세요.");
+            return;
+        }
+
+        const state = player.getPlayerState();
+        // 1: 재생중, 2: 일시정지, 5: 동영상 신호 없음, -1: 시작되지 않음
+        if (state === 1) { 
+            player.pauseVideo();
+            btn.innerText = "▶";
+            viz.classList.add('music-paused');
+        } else {
+            player.playVideo();
+            btn.innerText = "■";
+            viz.classList.remove('music-paused');
+        }
+    };
+
+    // 설정 저장 시 플레이어 업데이트
+window.saveSettings = function() {
+    const url = document.getElementById('set-bgm-url').value.trim();
+    const vol = document.getElementById('set-bgm-vol').value;
+    
+    const videoId = extractVideoId(url);
+
+    if (!videoId && url !== "") {
+        alert("유효한 유튜브 주소가 아닙니다.");
+        return;
+    }
+
+    // 1. 설정 데이터 업데이트
+    globalConfig.bgmUrl = url;
+    globalConfig.volume = parseFloat(vol);
+    saveAllData(); 
+
+    // 2. 플레이어 업데이트 (안전 검사 추가)
+    if (videoId) {
+        // 플레이어가 존재하고, cueVideoById 함수가 준비되었는지 확인
+        if (player && typeof player.cueVideoById === 'function') {
+            player.cueVideoById(videoId);
+            player.setVolume(globalConfig.volume * 100);
+            
+            document.getElementById('music-toggle-btn').innerText = '▶';
+            document.getElementById('music-viz').classList.add('music-paused');
+            alert("설정이 저장되었습니다. 재생 버튼을 눌러 확인하세요!");
+        } else {
+            // 플레이어가 준비 안 됐다면 페이지 새로고침 제안
+            alert("유튜브 시스템이 아직 준비 중입니다. 잠시 후 다시 시도하거나 페이지를 새로고침 해주세요.");
+        }
+    } else {
+        alert("설정이 저장되었습니다.");
+    }
+    
+    closeSettings();
+};
+
+// 볼륨 조절 함수 추가
+window.changeVolume = function(val) {
+    const volumeValue = parseFloat(val);
+    
+    // 1. 전역 설정값 업데이트 (0.0 ~ 1.0 사이)
+    if (typeof globalConfig !== 'undefined') {
+        globalConfig.volume = volumeValue;
+    }
+
+    // 2. 유튜브 플레이어 볼륨 실시간 조절 (유튜브는 0 ~ 100 기준)
+    if (player && typeof player.setVolume === 'function') {
+        player.setVolume(volumeValue * 100);
+    }
+
+    // 3. 콘솔 확인 (필요 없으면 지워도 됩니다)
+    console.log("현재 설정 볼륨:", volumeValue);
+};
+
+</script>
+</body>
+</html>
