@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AOTU WORLD : OC ARCHIVE</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==">
     <style>
         /* [1] SYSTEM VARIABLES & RESET */
         :root {
@@ -584,6 +585,89 @@ onValue(ref(db, 'characters'), (snapshot) => {
     console.error("%c[Firebase] 초기화 실패!", "color: #ff4444; font-weight: bold;");
     console.error(error);
   }
+
+// [1. 캐릭터 저장 함수] - 등록 버튼을 누를 때 실행됩니다.
+window.saveCharacter = function() {
+    const name = document.getElementById('inp-name').value;
+    const title = document.getElementById('inp-title').value;
+    const category = document.getElementById('inp-category').value;
+    
+    // 사진 데이터 가져오기 (가장 중요)
+    const imgData = document.getElementById('inp-img-final').value;
+
+    if (!name) {
+        alert("이름을 입력해주세요!");
+        return;
+    }
+
+    // 새 캐릭터 객체 생성
+    const newChar = {
+        id: Date.now(),
+        name: name,
+        title: title,
+        category: category,
+        img: imgData, // 여기에 사진 데이터가 들어갑/니다.
+        stats: {
+            hp: document.getElementById('inp-hp').value,
+            atk: document.getElementById('inp-atk').value,
+            def: document.getElementById('inp-def').value,
+            spd: document.getElementById('inp-spd').value
+        },
+        desc: document.getElementById('inp-desc').value,
+        timestamp: new Date().toISOString()
+    };
+
+    // DB에 추가
+    if (!window.charDB) window.charDB = [];
+    window.charDB.push(newChar);
+
+    // 실행 순서: 화면 다시 그리기 -> 서버(Firebase)에 저장 -> 입력창 닫기
+    renderCharacters(); 
+    saveAllData(); 
+    closeModal();
+    
+    // 입력창 초기화
+    resetForm();
+};
+
+// [2. 캐릭터 목록 화면에 그리는 함수] - 여기서 사진을 보여줍니다.
+window.renderCharacters = function() {
+    const listContainer = document.getElementById('character-list');
+    if (!listContainer) return;
+    
+    listContainer.innerHTML = ''; // 기존 목록 비우기
+
+    window.charDB.forEach(char => {
+        const card = document.createElement('div');
+        card.className = 'char-card';
+        
+        // 이미지가 있으면 배경으로 넣고, 없으면 기본 회색 배경
+        const bgImg = char.img ? `url('${char.img}')` : 'none';
+        
+        card.innerHTML = `
+            <div class="card-image" style="background-image: ${bgImg}; background-size: cover; background-position: center; height: 200px; width: 100%;"></div>
+            <div class="card-info" style="padding: 10px;">
+                <div class="card-category">${char.category || '미분류'}</div>
+                <div class="card-name">${char.name}</div>
+                <div class="card-title">${char.title || ''}</div>
+            </div>
+        `;
+        
+        card.onclick = () => openDetail(char.id);
+        listContainer.appendChild(card);
+    });
+};
+
+// 입력창 초기화 함수
+function resetForm() {
+    document.getElementById('inp-name').value = '';
+    document.getElementById('inp-title').value = '';
+    document.getElementById('inp-img-final').value = '';
+    document.getElementById('inp-img-file').value = '';
+    document.getElementById('inp-img-url').value = '';
+    document.getElementById('img-preview-box').style.backgroundImage = 'none';
+}
+
 </script>
 
 <body>
