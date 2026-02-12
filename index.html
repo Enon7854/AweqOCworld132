@@ -516,7 +516,7 @@ const firebaseConfig = {
     };
 
     // [데이터 저장 함수 수정]
-    window.saveAllData = async function() {
+window.saveAllData = async function() {
         const data = {
             charDB: window.charDB || [],
             categoryDB: window.categoryDB || [],
@@ -526,18 +526,21 @@ const firebaseConfig = {
             globalConfig: window.globalConfig || {}
         };
 
+        // 1. 로컬 스토리지에 즉시 저장 (새로고침 시 증발 방지)
+        localStorage.setItem('aotu_world_data', JSON.stringify(data));
+
+        // 2. 파이어베이스에 저장
         if (window.saveToFirebase) {
             try {
                 await window.saveToFirebase(data);
-                console.log("데이터 저장 성공");
+                console.log("✅ 데이터 동기화 완료");
             } catch (e) {
-                console.error("데이터 저장 중 오류:", e);
-                alert("저장 실패: " + e.message);
+                console.error("저장 중 오류:", e);
+                // 파이어베이스 실패해도 로컬에는 저장되었으니 안심하세요.
             }
-        } else {
-            console.error("Firebase 저장 함수(saveToFirebase)를 찾을 수 없습니다.");
         }
     };
+
 onValue(ref(db, 'characters'), (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -1011,9 +1014,8 @@ window.onload = function() {
         }
     }
 
-// [수정된 데이터 저장 함수]
+// [수정됨] 데이터 저장 함수 (로컬 + 파이어베이스 동시 저장)
     window.saveAllData = async function() {
-        // 데이터 객체 생성
         const data = {
             charDB: window.charDB || [],
             categoryDB: window.categoryDB || [],
@@ -1023,22 +1025,18 @@ window.onload = function() {
             globalConfig: window.globalConfig || {}
         };
 
-        // 1. 설정값 저장 (옛날 firebase.database() 코드 삭제 및 최신 문법 적용)
-        try {
-            // 위에서 import한 set, ref, db 변수를 사용해야 합니다.
-            // 만약 import된 변수에 접근이 안 된다면 window.firebaseRef 등을 사용합니다.
-            const dbRef = window.firebaseRef(window.db, 'settings');
-            // set 함수는 window에 없을 수 있으므로, import된 set을 쓰거나 firebase 모듈을 통해야 합니다.
-            // 가장 확실한 방법은 이미 만들어둔 saveToFirebase를 활용하는 것입니다.
-        } catch(e) {
-            console.log("설정 저장 건너뜀:", e);
-        }
-        
-        // 2. 전체 데이터 저장 (saveToFirebase 함수 활용)
-        if(window.saveToFirebase) {
-            await window.saveToFirebase(data);
-        } else {
-            console.error("saveToFirebase 함수를 찾을 수 없습니다.");
+        // 1. 로컬 스토리지에 즉시 저장 (새로고침 시 증발 방지)
+        localStorage.setItem('aotu_world_data', JSON.stringify(data));
+
+        // 2. 파이어베이스에 저장
+        if (window.saveToFirebase) {
+            try {
+                await window.saveToFirebase(data);
+                console.log("✅ 데이터 동기화 완료");
+            } catch (e) {
+                console.error("저장 중 오류:", e);
+                // 파이어베이스 실패해도 로컬에는 저장되었으니 안심하세요.
+            }
         }
     };
 
@@ -1229,15 +1227,17 @@ function saveCharacter() {
     const team = document.getElementById('inp-team').value;
 
     if (!name) { alert('이름을 입력해주세요.'); return; }
-    const currentUrlInput = document.getElementById('inp-img-url').value.trim();
-    const storedImage = document.getElementById('inp-img-final').value;
-    const finalImage = currentUrlInput ? currentUrlInput : storedImage;
+
+    // [이미지 처리 로직] URL 입력이 있으면 그걸 우선, 없으면 파일/기존값 사용
+    const urlInputVal = document.getElementById('inp-img-url').value.trim();
+    const hiddenInputVal = document.getElementById('inp-img-final').value;
+    const finalImage = urlInputVal ? urlInputVal : hiddenInputVal;
 
     const newChar = {
         id: id,
         name: name,
-        team: team,
-        image: finalImage, // 이제 주소를 넣으면 정상적으로 저장돼!
+        team: team, // 여기서 팀 이름을 가져와서 저장합니다
+        image: finalImage, 
         isLeader: document.getElementById('inp-leader').checked,
         themeColor: document.getElementById('inp-theme-color').value,
         gender: document.getElementById('inp-gender').value,
@@ -1270,11 +1270,12 @@ function saveCharacter() {
     const idx = charDB.findIndex(c => c.id === id);
     if (idx !== -1) { charDB[idx] = newChar; } else { charDB.push(newChar); }
 
-    saveAllData(); // 여기서 파이어베이스로 전송함
+    saveAllData(); // 로컬+파이어베이스 둘 다 저장
     renderCharList();
     renderRelSidebar();
     closeInputModal();
 
+    // 만약 현재 보고 있는 캐릭터를 수정한 거라면 상세페이지도 즉시 갱신
     if(currentDetailId === id) openDetail(id);
 }
 
@@ -1355,24 +1356,34 @@ function openDetail(id) {
         if(catObj) teamColor = catObj.color;
         const charTheme = char.themeColor || '#00f0ff';
 
+        // [수정됨] 이름 설정
         const nameEl = document.getElementById('detail-name');
         nameEl.innerText = char.name;
         nameEl.style.color = charTheme;      
         nameEl.style.textShadow = `0 0 20px ${charTheme}`; 
 
+        // [추가됨] 팀 이름 설정 (이 부분이 빠져 있었습니다!)
+        const teamEl = document.getElementById('detail-team');
+        if(teamEl) {
+            teamEl.innerText = char.team; // 예: TEAM KING
+            teamEl.style.color = teamColor;
+        }
+
+        // 배경 텍스트 설정
         const bgNameEl = document.getElementById('detail-name-bg');
         bgNameEl.innerText = char.name.toUpperCase();
         bgNameEl.style.color = '#ffffff'; 
         bgNameEl.style.opacity = '0.1';   
 
-const charImgEl = document.getElementById('detail-char-img');
-    charImgEl.innerHTML = ''; 
-    if(char.image) {
-        const imgTag = document.createElement('img');
-        imgTag.src = char.image;
-        // imgTag.style.display = 'block'; // 필요시 추가
-        charImgEl.appendChild(imgTag);
-    }
+        // 이미지 설정
+        const charImgEl = document.getElementById('detail-char-img');
+        charImgEl.innerHTML = ''; 
+        if(char.image) {
+            const imgTag = document.createElement('img');
+            imgTag.src = char.image;
+            charImgEl.appendChild(imgTag);
+        }
+        
         document.getElementById('detail-catchphrase').innerText = `"${char.catchphrase || 'No Catchphrase'}"`;
         document.getElementById('detail-intro').innerText = char.intro || 'No Introduction.';
         
