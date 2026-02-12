@@ -1224,56 +1224,61 @@ window.onload = function() {
 
     // --- CHARACTER INPUT & SAVE ---
 function saveCharacter() {
-        const id = document.getElementById('inp-id').value || ('char_' + Date.now());
-        const name = document.getElementById('inp-name').value;
-        const team = document.getElementById('inp-team').value;
-        
-        if (!name) { alert('이름을 입력해주세요.'); return; }
+    const id = document.getElementById('inp-id').value || ('char_' + Date.now());
+    const name = document.getElementById('inp-name').value;
+    const team = document.getElementById('inp-team').value;
 
-        const newChar = {
-            id: id,
-            name: name,
-            team: team,
-            image: document.getElementById('inp-img-final').value || '', 
-            isLeader: document.getElementById('inp-leader').checked,
-            themeColor: document.getElementById('inp-theme-color').value,
-            gender: document.getElementById('inp-gender').value,
-            age: document.getElementById('inp-age').value,
-            origin: document.getElementById('inp-origin').value,
-            birth: document.getElementById('inp-birth').value,
-            height: document.getElementById('inp-height').value,
-            weight: document.getElementById('inp-weight').value,
-            blood: document.getElementById('inp-blood').value,
-            sign: document.getElementById('inp-sign').value,
-            like: document.getElementById('inp-like').value,
-            food: document.getElementById('inp-food').value,
-            metaName: document.getElementById('inp-meta-name').value,
-            metaDesc: document.getElementById('inp-meta-desc').value,
-            catchphrase: document.getElementById('inp-catchphrase').value,
-            intro: document.getElementById('inp-intro').value,
-            personality: document.getElementById('inp-personality').value,
-            background: document.getElementById('inp-background').value,
-            trivia: document.getElementById('inp-trivia').value,
-            stats: {
-                atk: Number(document.getElementById('inp-stat-atk').value) || 0,
-                def: Number(document.getElementById('inp-stat-def').value) || 0,
-                spd: Number(document.getElementById('inp-stat-spd').value) || 0,
-                int: Number(document.getElementById('inp-stat-int').value) || 0,
-                pot: Number(document.getElementById('inp-stat-pot').value) || 0,
-                sur: Number(document.getElementById('inp-stat-sur').value) || 0
-            }
-        };
-        
-        const idx = charDB.findIndex(c => c.id === id);
-        if (idx !== -1) { charDB[idx] = newChar; } else { charDB.push(newChar); }
+    if (!name) { alert('이름을 입력해주세요.'); return; }
 
-        saveAllData();
-        renderCharList();
-        renderRelSidebar();
-        closeInputModal();
-        
-        if(currentDetailId === id) openDetail(id);
-    }
+    // [수정된 부분] URL 입력창이나 업로드된 데이터 중 있는 것을 선택
+    const imgUrl = document.getElementById('inp-img-url').value;
+    const imgFile = document.getElementById('inp-img-final').value;
+    const finalImage = imgUrl || imgFile || '';
+
+    const newChar = {
+        id: id,
+        name: name,
+        team: team,
+        image: finalImage, // 이제 주소를 넣으면 정상적으로 저장돼!
+        isLeader: document.getElementById('inp-leader').checked,
+        themeColor: document.getElementById('inp-theme-color').value,
+        gender: document.getElementById('inp-gender').value,
+        age: document.getElementById('inp-age').value,
+        origin: document.getElementById('inp-origin').value,
+        birth: document.getElementById('inp-birth').value,
+        height: document.getElementById('inp-height').value,
+        weight: document.getElementById('inp-weight').value,
+        blood: document.getElementById('inp-blood').value,
+        sign: document.getElementById('inp-sign').value,
+        like: document.getElementById('inp-like').value,
+        food: document.getElementById('inp-food').value,
+        metaName: document.getElementById('inp-meta-name').value,
+        metaDesc: document.getElementById('inp-meta-desc').value,
+        catchphrase: document.getElementById('inp-catchphrase').value,
+        intro: document.getElementById('inp-intro').value,
+        personality: document.getElementById('inp-personality').value,
+        background: document.getElementById('inp-background').value,
+        trivia: document.getElementById('inp-trivia').value,
+        stats: {
+            atk: Number(document.getElementById('inp-stat-atk').value) || 0,
+            def: Number(document.getElementById('inp-stat-def').value) || 0,
+            spd: Number(document.getElementById('inp-stat-spd').value) || 0,
+            int: Number(document.getElementById('inp-stat-int').value) || 0,
+            pot: Number(document.getElementById('inp-stat-pot').value) || 0,
+            sur: Number(document.getElementById('inp-stat-sur').value) || 0
+        }
+    };
+
+    const idx = charDB.findIndex(c => c.id === id);
+    if (idx !== -1) { charDB[idx] = newChar; } else { charDB.push(newChar); }
+
+    saveAllData(); // 여기서 파이어베이스로 전송함
+    renderCharList();
+    renderRelSidebar();
+    closeInputModal();
+
+    if(currentDetailId === id) openDetail(id);
+}
 
     function switchTab(tabIdx) {
         currentActiveTab = tabIdx; // [NEW] 현재 탭 저장
