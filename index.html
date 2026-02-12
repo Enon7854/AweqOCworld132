@@ -827,7 +827,7 @@ onValue(ref(db, 'characters'), (snapshot) => {
                     <label style="color:var(--neon-yellow);">CHARACTER IMAGE</label>
                     <div style="display:flex; gap:10px; flex-direction: column;">
                         <input type="file" id="inp-img-file" accept="image/*" style="padding: 5px;" onchange="handleImageUpload(this)">
-                        <input type="text" id="inp-img-url" placeholder="OR Image URL (https://...)" onchange="handleImageUrl(this)">
+                        <input type="text" id="inp-img-url" placeholder="OR Image URL (https://...)" oninput="handleImageUrl(this)">
                         <input type="hidden" id="inp-img-final">
                         <div id="img-preview-box" style="width: 100px; height: 100px; background: #000; border: 1px solid #444; background-size: cover; background-position: center; display:none; margin-top:5px;"></div>
                     </div>
@@ -1229,11 +1229,9 @@ function saveCharacter() {
     const team = document.getElementById('inp-team').value;
 
     if (!name) { alert('이름을 입력해주세요.'); return; }
-
-    // [수정된 부분] URL 입력창이나 업로드된 데이터 중 있는 것을 선택
-    const imgUrl = document.getElementById('inp-img-url').value;
-    const imgFile = document.getElementById('inp-img-final').value;
-    const finalImage = imgUrl || imgFile || '';
+    const currentUrlInput = document.getElementById('inp-img-url').value.trim();
+    const storedImage = document.getElementById('inp-img-final').value;
+    const finalImage = currentUrlInput ? currentUrlInput : storedImage;
 
     const newChar = {
         id: id,
