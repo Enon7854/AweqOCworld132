@@ -483,6 +483,11 @@ const firebaseConfig = {
     window.firebaseRef = ref;
     window.firebaseOnValue = onValue;
     window.firebaseReady = true;
+window.saveAllData = async function() { ... }
+
+  window.handleImageUpload = function(input) { ... }
+  
+  window.handleImageUrl = function(input) { ... }
 
 onValue(ref(db, 'characters'), (snapshot) => {
     const data = snapshot.val();
@@ -956,21 +961,63 @@ window.onload = function() {
         }
     }
 
-async function saveAllData() {
+// [수정된 데이터 저장 함수]
+    window.saveAllData = async function() {
+        // 데이터 객체 생성
         const data = {
-            charDB: charDB,
-            categoryDB: categoryDB,
-            termDB: termDB,
-            relationDB: relationDB,
-            userDB: userDB,         // [추가]
-            globalConfig: globalConfig // [추가]
+            charDB: window.charDB || [],
+            categoryDB: window.categoryDB || [],
+            termDB: window.termDB || [],
+            relationDB: window.relationDB || [],
+            userDB: window.userDB || [],
+            globalConfig: window.globalConfig || {}
         };
-        firebase.database().ref('settings').set(globalConfig);
+
+        // 1. 설정값 저장 (옛날 firebase.database() 코드 삭제 및 최신 문법 적용)
+        try {
+            // 위에서 import한 set, ref, db 변수를 사용해야 합니다.
+            // 만약 import된 변수에 접근이 안 된다면 window.firebaseRef 등을 사용합니다.
+            const dbRef = window.firebaseRef(window.db, 'settings');
+            // set 함수는 window에 없을 수 있으므로, import된 set을 쓰거나 firebase 모듈을 통해야 합니다.
+            // 가장 확실한 방법은 이미 만들어둔 saveToFirebase를 활용하는 것입니다.
+        } catch(e) {
+            console.log("설정 저장 건너뜀:", e);
+        }
         
+        // 2. 전체 데이터 저장 (saveToFirebase 함수 활용)
         if(window.saveToFirebase) {
             await window.saveToFirebase(data);
+        } else {
+            console.error("saveToFirebase 함수를 찾을 수 없습니다.");
         }
-    }
+    };
+
+// [이미지 업로드 처리 함수 - window에 강제 등록]
+    window.handleImageUpload = function(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewBox = document.getElementById('img-preview-box');
+                previewBox.style.display = 'block';
+                previewBox.style.backgroundImage = `url('${e.target.result}')`;
+                document.getElementById('inp-img-final').value = e.target.result;
+                document.getElementById('inp-img-url').value = '';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    // [이미지 URL 처리 함수 - window에 강제 등록]
+    window.handleImageUrl = function(input) {
+        const url = input.value.trim();
+        if (url) {
+            const previewBox = document.getElementById('img-preview-box');
+            previewBox.style.display = 'block';
+            previewBox.style.backgroundImage = `url('${url}')`;
+            document.getElementById('inp-img-final').value = url;
+            document.getElementById('inp-img-file').value = '';
+        }
+    };
 
     function loadAllData() {
         const saved = localStorage.getItem('aotu_world_data');
