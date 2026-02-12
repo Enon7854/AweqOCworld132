@@ -517,29 +517,31 @@ const firebaseConfig = {
 
     // [데이터 저장 함수 수정]
 window.saveAllData = async function() {
-        const data = {
-            charDB: window.charDB || [],
-            categoryDB: window.categoryDB || [],
-            termDB: window.termDB || [],
-            relationDB: window.relationDB || [],
-            userDB: window.userDB || [],
-            globalConfig: window.globalConfig || {}
-        };
-
-        // 1. 로컬 스토리지에 즉시 저장 (새로고침 시 증발 방지)
-        localStorage.setItem('aotu_world_data', JSON.stringify(data));
-
-        // 2. 파이어베이스에 저장
-        if (window.saveToFirebase) {
-            try {
-                await window.saveToFirebase(data);
-                console.log("✅ 데이터 동기화 완료");
-            } catch (e) {
-                console.error("저장 중 오류:", e);
-                // 파이어베이스 실패해도 로컬에는 저장되었으니 안심하세요.
-            }
-        }
+    const data = {
+        charDB: window.charDB || [],
+        categoryDB: window.categoryDB || [],
+        termDB: window.termDB || [],
+        relationDB: window.relationDB || [],
+        userDB: window.userDB || [],
+        globalConfig: window.globalConfig || {},
+        // ✅ 이 줄이 없어서 새로고침 시 데이터가 옛날 것으로 덮어씌워졌던 것입니다.
+        updatedAt: Date.now() 
     };
+
+    // 1. 로컬 스토리지에 저장
+    localStorage.setItem('aotu_world_data', JSON.stringify(data));
+
+    // 2. 파이어베이스에 저장 (set 함수를 직접 사용하여 저장 보장)
+    if (window.db) {
+        try {
+            const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
+            await set(ref(window.db, 'characters'), data);
+            console.log("✅ 서버와 동기화 완료: " + new Date().toLocaleTimeString());
+        } catch (e) {
+            console.error("서버 저장 실패:", e);
+        }
+    }
+};
 
 onValue(ref(db, 'characters'), (snapshot) => {
     const serverData = snapshot.val();
@@ -1243,13 +1245,13 @@ function saveCharacter() {
     // [이미지 처리 로직] URL 입력이 있으면 그걸 우선, 없으면 파일/기존값 사용
     const urlInputVal = document.getElementById('inp-img-url').value.trim();
     const hiddenInputVal = document.getElementById('inp-img-final').value;
-    const finalImage = urlInputVal ? urlInputVal : hiddenInputVal;
+    const finalImg = document.getElementById('inp-img-final').value;
 
     const newChar = {
         id: id,
         name: name,
         team: team, // 여기서 팀 이름을 가져와서 저장합니다
-        image: finalImage, 
+        image: finalImg,
         isLeader: document.getElementById('inp-leader').checked,
         themeColor: document.getElementById('inp-theme-color').value,
         gender: document.getElementById('inp-gender').value,
