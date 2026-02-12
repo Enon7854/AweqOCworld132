@@ -484,6 +484,27 @@ const firebaseConfig = {
     window.firebaseOnValue = onValue;
     window.firebaseReady = true;
 
+onValue(ref(db, 'characters'), (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        // 1. 전역 변수들에 서버 데이터 덮어쓰기
+        window.charDB = data.charDB || window.charDB;
+        window.categoryDB = data.categoryDB || window.categoryDB;
+        window.termDB = data.termDB || window.termDB;
+        window.relationDB = data.relationDB || window.relationDB;
+        window.globalConfig = data.globalConfig || window.globalConfig;
+
+        // 2. 화면 UI들을 최신 데이터로 다시 그리기
+        // (작성하신 함수들이 전역에 선언되어 있어야 작동합니다)
+        if (typeof renderCategories === 'function') renderCategories();
+        if (typeof renderCharList === 'function') renderCharList();
+        if (typeof renderTerms === 'function') renderTerms();
+        if (typeof renderRelSidebar === 'function') renderRelSidebar();
+        
+        console.log("🚀 서버 데이터가 변경되어 화면을 동기화했습니다.");
+    }
+});
+
     window.loadFromFirebase = async function() {
       try {
         const snapshot = await get(child(ref(db), 'characters'));
@@ -916,8 +937,9 @@ const firebaseConfig = {
 
     // 시스템 설정 (BGM 등)
     let globalConfig = {
-        bgmUrl: "https://t1.daumcdn.net/cfile/tistory/994D5C485C8EEF791E?original", // 기본 BGM (예시)
-        volume: 0.3
+    bgmUrl: "https://youtu.be/9mU-JZFp93A?si=a1DnNMNADVhQzbn_", 
+    volume: 0.5
+};
     };
 
 window.onload = function() {
@@ -944,7 +966,7 @@ async function saveAllData() {
             userDB: userDB,         // [추가]
             globalConfig: globalConfig // [추가]
         };
-        localStorage.setItem('aotu_world_data', JSON.stringify(data));
+        firebase.database().ref('settings').set(globalConfig);
         
         if(window.saveToFirebase) {
             await window.saveToFirebase(data);
