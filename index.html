@@ -542,23 +542,38 @@ window.saveAllData = async function() {
     };
 
 onValue(ref(db, 'characters'), (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-        // 1. 전역 변수들에 서버 데이터 덮어쓰기
-        window.charDB = data.charDB || window.charDB;
-        window.categoryDB = data.categoryDB || window.categoryDB;
-        window.termDB = data.termDB || window.termDB;
-        window.relationDB = data.relationDB || window.relationDB;
-        window.globalConfig = data.globalConfig || window.globalConfig;
+    const serverData = snapshot.val();
+    
+    if (serverData) {
+        // [추가] 로컬 데이터와 서버 데이터의 시간 비교
+        const localDataString = localStorage.getItem('aotu_world_data');
+        let localData = localDataString ? JSON.parse(localDataString) : null;
 
-        // 2. 화면 UI들을 최신 데이터로 다시 그리기
-        // (작성하신 함수들이 전역에 선언되어 있어야 작동합니다)
+        // 로컬 데이터가 있고, 로컬의 수정 시간이 서버보다 더 최신이면 덮어쓰지 않음
+        if (localData && localData.updatedAt && serverData.updatedAt) {
+            if (localData.updatedAt > serverData.updatedAt) {
+                console.log("⚠️ 로컬 데이터가 더 최신이므로 서버 데이터를 무시합니다.");
+                // 필요하다면 여기서 반대로 서버에 로컬 데이터를 다시 덮어씌우는 함수를 호출할 수도 있습니다.
+                // window.saveToFirebase(localData); 
+                return; 
+            }
+        }
+
+        // 서버 데이터가 더 최신이거나 시간이 같으면 적용
+        window.charDB = serverData.charDB || window.charDB;
+        window.categoryDB = serverData.categoryDB || window.categoryDB;
+        window.termDB = serverData.termDB || window.termDB;
+        window.relationDB = serverData.relationDB || window.relationDB;
+        window.globalConfig = serverData.globalConfig || window.globalConfig;
+        window.userDB = serverData.userDB || window.userDB;
+
+        // UI 갱신
         if (typeof renderCategories === 'function') renderCategories();
         if (typeof renderCharList === 'function') renderCharList();
         if (typeof renderTerms === 'function') renderTerms();
         if (typeof renderRelSidebar === 'function') renderRelSidebar();
         
-        console.log("🚀 서버 데이터가 변경되어 화면을 동기화했습니다.");
+        console.log("🚀 서버 데이터와 동기화되었습니다.");
     }
 });
 
@@ -1008,31 +1023,32 @@ window.onload = function() {
         }
     }
 
-// [수정됨] 데이터 저장 함수 (로컬 + 파이어베이스 동시 저장)
-    window.saveAllData = async function() {
-        const data = {
-            charDB: window.charDB || [],
-            categoryDB: window.categoryDB || [],
-            termDB: window.termDB || [],
-            relationDB: window.relationDB || [],
-            userDB: window.userDB || [],
-            globalConfig: window.globalConfig || {}
-        };
-
-        // 1. 로컬 스토리지에 즉시 저장 (새로고침 시 증발 방지)
-        localStorage.setItem('aotu_world_data', JSON.stringify(data));
-
-        // 2. 파이어베이스에 저장
-        if (window.saveToFirebase) {
-            try {
-                await window.saveToFirebase(data);
-                console.log("✅ 데이터 동기화 완료");
-            } catch (e) {
-                console.error("저장 중 오류:", e);
-                // 파이어베이스 실패해도 로컬에는 저장되었으니 안심하세요.
-            }
-        }
+window.saveAllData = async function() {
+    const data = {
+        charDB: window.charDB || [],
+        categoryDB: window.categoryDB || [],
+        termDB: window.termDB || [],
+        relationDB: window.relationDB || [],
+        userDB: window.userDB || [],
+        globalConfig: window.globalConfig || {},
+        // [추가] 마지막 수정 시간 기록
+        updatedAt: Date.now() 
     };
+
+    // 1. 로컬 스토리지 저장
+    localStorage.setItem('aotu_world_data', JSON.stringify(data));
+
+    // 2. 파이어베이스 저장
+    if (window.saveToFirebase) {
+        try {
+            await window.saveToFirebase(data);
+            console.log("✅ 데이터 동기화 완료");
+        } catch (e) {
+            console.error("❌ 저장 실패 (권한 문제일 수 있음):", e);
+            alert("서버 저장에 실패했습니다. (콘솔 확인 필요)");
+        }
+    }
+};
 
 // [이미지 업로드 처리 함수 - window에 강제 등록]
     window.handleImageUpload = function(input) {
