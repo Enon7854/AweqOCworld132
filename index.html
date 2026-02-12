@@ -955,6 +955,9 @@ onValue(ref(db, 'characters'), (snapshot) => {
         { name: 'TEAM RAY', color: '#00ff88' },
         { name: 'SOLO', color: '#888888' }
     ];
+
+let globalConfig = { bgmUrl: "", volume: 0.5 };
+
     let charDB = [
         { 
             id: 'char_001', name: 'ZERO', team: 'SOLO', isLeader: false, 
