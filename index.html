@@ -1086,6 +1086,45 @@ async function saveAllData() {
         }
     }
 
+// [이미지 업로드 처리 함수]
+    window.handleImageUpload = function(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                // 1. 미리보기 박스에 이미지 표시
+                const previewBox = document.getElementById('img-preview-box');
+                previewBox.style.display = 'block';
+                previewBox.style.backgroundImage = `url('${e.target.result}')`;
+                
+                // 2. 최종 저장될 input에 이미지 데이터(Base64) 넣기
+                document.getElementById('inp-img-final').value = e.target.result;
+                
+                // 3. URL 입력창은 비워주기 (헷갈리지 않게)
+                document.getElementById('inp-img-url').value = '';
+            };
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    // [이미지 URL 입력 처리 함수] - 바로 아래칸에 있는 기능도 같이 추가해 드립니다.
+    window.handleImageUrl = function(input) {
+        const url = input.value.trim();
+        if (url) {
+            // 1. 미리보기 표시
+            const previewBox = document.getElementById('img-preview-box');
+            previewBox.style.display = 'block';
+            previewBox.style.backgroundImage = `url('${url}')`;
+            
+            // 2. 최종 저장될 input에 URL 넣기
+            document.getElementById('inp-img-final').value = url;
+            
+            // 3. 파일 업로드 입력창은 초기화
+            document.getElementById('inp-img-file').value = '';
+        }
+    };
+
     // --- CHARACTER INPUT & SAVE ---
 function saveCharacter() {
         const id = document.getElementById('inp-id').value || ('char_' + Date.now());
