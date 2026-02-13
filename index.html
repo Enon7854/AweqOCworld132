@@ -1029,7 +1029,6 @@ window.onload = function() {
         }
     }
 
-// [데이터 저장 함수 수정] - 타임스탬프 추가
 window.saveAllData = async function() {
     const data = {
         charDB: window.charDB || [],
@@ -1038,19 +1037,21 @@ window.saveAllData = async function() {
         relationDB: window.relationDB || [],
         userDB: window.userDB || [],
         globalConfig: window.globalConfig || {},
-        updatedAt: Date.now() // ✅ 이 줄이 반드시 있어야 서버와 동기화가 정상 작동합니다.
+        updatedAt: Date.now() // ✅ 주석 제거! 반드시 실행되어야 함
     };
 
-    // 1. 로컬 스토리지 저장
+    // 1. 로컬 스토리지에 저장
     localStorage.setItem('aotu_world_data', JSON.stringify(data));
+    console.log("💾 로컬 저장 완료:", new Date(data.updatedAt).toLocaleTimeString());
 
-    // 2. 파이어베이스 저장
-    if (window.saveToFirebase) {
+    // 2. 파이어베이스에 저장
+    if (window.db) {
         try {
-            await window.saveToFirebase(data);
-            console.log("✅ 서버와 동기화 완료 (" + new Date(data.updatedAt).toLocaleTimeString() + ")");
+            const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
+            await set(ref(window.db, 'characters'), data);
+            console.log("☁️ 서버 저장 완료:", new Date(data.updatedAt).toLocaleTimeString());
         } catch (e) {
-            console.error("서버 저장 중 오류:", e);
+            console.error("❌ 서버 저장 실패:", e);
         }
     }
 };
