@@ -464,10 +464,11 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-const firebaseConfig = {
+  // 1. Firebase 설정
+  const firebaseConfig = {
     apiKey: "AIzaSyAiS0NKi6QeQFEUlHQQDNKWbqoxopUhbEI",
     authDomain: "autocoworld.firebaseapp.com",
-    databaseURL: "https://autocoworld-default-rtdb.asia-southeast1.firebasedatabase.app/", 
+    databaseURL: "https://autocoworld-default-rtdb.asia-southeast1.firebasedatabase.app/",
     projectId: "autocoworld",
     storageBucket: "autocoworld.firebasestorage.app",
     messagingSenderId: "785293756397",
@@ -479,129 +480,105 @@ const firebaseConfig = {
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // 전역 변수로 할당 (콘솔 디버깅용)
     window.db = db;
-    window.firebaseDB = db;
-    window.firebaseRef = ref;
-    window.firebaseOnValue = onValue;
-    window.firebaseReady = true;
 
-// [이미지 처리 함수 등록]
-    window.handleImageUpload = function(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const previewBox = document.getElementById('img-preview-box');
-                if(previewBox) {
-                    previewBox.style.display = 'block';
-                    previewBox.style.backgroundImage = `url('${e.target.result}')`;
-                }
-                document.getElementById('inp-img-final').value = e.target.result;
-                document.getElementById('inp-img-url').value = '';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    };
-
-    window.handleImageUrl = function(input) {
-        const url = input.value.trim();
-        if (url) {
-            const previewBox = document.getElementById('img-preview-box');
-            if(previewBox) {
-                previewBox.style.display = 'block';
-                previewBox.style.backgroundImage = `url('${url}')`;
-            }
-            document.getElementById('inp-img-final').value = url;
-            document.getElementById('inp-img-file').value = '';
-        }
-    };
-
-    // [데이터 저장 함수 수정]
-window.saveAllData = async function() {
-        const data = {
-            charDB: window.charDB || [],
-            categoryDB: window.categoryDB || [],
-            termDB: window.termDB || [],
-            relationDB: window.relationDB || [],
-            globalConfig: window.globalConfig || {}
-        };
-
-        // 1. 로컬 스토리지에 즉시 저장 (새로고침 시 증발 방지)
-        localStorage.setItem('aotu_world_data', JSON.stringify(data));
-
-        // 2. 파이어베이스에 저장
-        if (window.saveToFirebase) {
-            try {
-                await window.saveToFirebase(data);
-                console.log("✅ 데이터 동기화 완료");
-            } catch (e) {
-                console.error("저장 중 오류:", e);
-                // 파이어베이스 실패해도 로컬에는 저장되었으니 안심하세요.
-            }
-        }
-    };
-
-onValue(ref(db, 'characters'), (snapshot) => {
-    const serverData = snapshot.val();
-    
-    if (serverData) {
-        // [추가] 로컬 데이터와 서버 데이터의 시간 비교
-        const localDataString = localStorage.getItem('aotu_world_data');
-        let localData = localDataString ? JSON.parse(localDataString) : null;
-
-        // 로컬 데이터가 있고, 로컬의 수정 시간이 서버보다 더 최신이면 덮어쓰지 않음
-        if (localData && localData.updatedAt && serverData.updatedAt) {
-            if (localData.updatedAt > serverData.updatedAt) {
-                console.log("⚠️ 로컬 데이터가 더 최신이므로 서버 데이터를 무시합니다.");
-                // 필요하다면 여기서 반대로 서버에 로컬 데이터를 다시 덮어씌우는 함수를 호출할 수도 있습니다.
-                // window.saveToFirebase(localData); 
-                return; 
-            }
-        }
-
-        // 서버 데이터가 더 최신이거나 시간이 같으면 적용
-        window.charDB = serverData.charDB || window.charDB;
-        window.categoryDB = serverData.categoryDB || window.categoryDB;
-        window.termDB = serverData.termDB || window.termDB;
-        window.relationDB = serverData.relationDB || window.relationDB;
-        window.globalConfig = serverData.globalConfig || window.globalConfig;
-        window.userDB = serverData.userDB || window.userDB;
-
-        // UI 갱신
-        if (typeof renderCategories === 'function') renderCategories();
-        if (typeof renderCharList === 'function') renderCharList();
-        if (typeof renderTerms === 'function') renderTerms();
-        if (typeof renderRelSidebar === 'function') renderRelSidebar();
-        
-        console.log("🚀 서버 데이터와 동기화되었습니다.");
-    }
-});
-
-    window.loadFromFirebase = async function() {
-      try {
-        const snapshot = await get(child(ref(db), 'characters'));
-        return snapshot.exists() ? snapshot.val() : null;
-      } catch (e) {
-        console.error("데이터 로드 에러:", e);
-        return null;
-      }
-    };
-
+    // -----------------------------------------------------------
+    // [중요] 데이터 저장 함수 (Firebase에 덮어쓰기)
+    // -----------------------------------------------------------
     window.saveToFirebase = async function(data) {
       try {
+        // 저장 시점의 시간을 갱신하여 저장
+        data.updatedAt = Date.now();
         await set(ref(db, 'characters'), data);
-        console.log("✅ Firebase 전송 완료");
-        return true;
+        console.log("✅ Firebase에 데이터 저장 성공!");
       } catch (error) {
-        console.error("❌ Firebase 전송 에러:", error);
-        throw error;
+        console.error("❌ Firebase 저장 실패:", error);
+        alert("데이터 저장에 실패했습니다. 인터넷 연결을 확인하세요.");
       }
     };
-    console.log("%c[Firebase] 시스템 초기화 완료!", "color: #00f0ff; font-weight: bold; background: #000; padding: 5px;");
+
+    // -----------------------------------------------------------
+    // [핵심 수정] 데이터 동기화 (서버 데이터가 있으면 무조건 불러오기)
+    // -----------------------------------------------------------
+    onValue(ref(db, 'characters'), (snapshot) => {
+        const serverData = snapshot.val();
+        
+        if (serverData) {
+            console.log("🔥 서버에서 데이터를 감지했습니다. UI를 갱신합니다.");
+
+            // 1. 전역 변수에 서버 데이터 할당 (없으면 빈 배열 [])
+            window.charDB = serverData.charDB || [];
+            window.categoryDB = serverData.categoryDB || [];
+            window.termDB = serverData.termDB || [];
+            window.relationDB = serverData.relationDB || [];
+            window.userDB = serverData.userDB || [];
+            window.globalConfig = serverData.globalConfig || { bgmUrl: "", volume: 0.5 };
+
+            // 2. 로컬 스토리지도 최신 상태로 백업
+            localStorage.setItem('aotu_world_data', JSON.stringify(serverData));
+
+            // 3. UI 강제 갱신 (데이터가 로드된 후 화면을 다시 그려야 함)
+            if (typeof window.renderCategories === 'function') window.renderCategories();
+            if (typeof window.renderCharList === 'function') window.renderCharList();
+            if (typeof window.renderTerms === 'function') window.renderTerms();
+            if (typeof window.renderRelSidebar === 'function') window.renderRelSidebar();
+            
+            // 만약 상세 페이지를 보고 있었다면 상세 페이지도 갱신
+            if (window.currentDetailId && typeof window.openDetail === 'function') {
+                // 현재 보고 있는 캐릭터가 삭제되지 않았는지 확인 후 갱신
+                const stillExists = window.charDB.find(c => c.id === window.currentDetailId);
+                if (stillExists) {
+                    window.openDetail(window.currentDetailId);
+                } else {
+                    // 보고 있던 캐릭터가 삭제되었으면 목록으로 이동
+                    if(typeof window.showSection === 'function') window.showSection('list');
+                }
+            }
+
+        } else {
+            console.log("⚠️ 서버에 저장된 데이터가 없습니다. (초기 상태)");
+        }
+    });
+
+    console.log("%c[Firebase] 시스템 연결 성공", "color: #00f0ff; font-weight: bold; background: #000; padding: 5px;");
 
   } catch (error) {
     console.error("%c[Firebase] 초기화 실패!", "color: #ff4444; font-weight: bold;");
     console.error(error);
   }
+
+  // -----------------------------------------------------------
+  // [기능 유지] 이미지 처리 헬퍼 함수들
+  // -----------------------------------------------------------
+  window.handleImageUpload = function(input) {
+      if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              const previewBox = document.getElementById('img-preview-box');
+              if(previewBox) {
+                  previewBox.style.display = 'block';
+                  previewBox.style.backgroundImage = `url('${e.target.result}')`;
+              }
+              document.getElementById('inp-img-final').value = e.target.result;
+              document.getElementById('inp-img-url').value = '';
+          };
+          reader.readAsDataURL(input.files[0]);
+      }
+  };
+
+  window.handleImageUrl = function(input) {
+      const url = input.value.trim();
+      if (url) {
+          const previewBox = document.getElementById('img-preview-box');
+          if(previewBox) {
+              previewBox.style.display = 'block';
+              previewBox.style.backgroundImage = `url('${url}')`;
+          }
+          document.getElementById('inp-img-final').value = url;
+          document.getElementById('inp-img-file').value = '';
+      }
+  };
 
 </script>
 
