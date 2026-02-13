@@ -522,7 +522,6 @@ window.saveAllData = async function() {
             categoryDB: window.categoryDB || [],
             termDB: window.termDB || [],
             relationDB: window.relationDB || [],
-            userDB: window.userDB || [],
             globalConfig: window.globalConfig || {}
         };
 
@@ -1087,7 +1086,6 @@ window.saveAllData = async function() {
             categoryDB = data.categoryDB || categoryDB;
             termDB = data.termDB || termDB;
             relationDB = data.relationDB || relationDB;
-            userDB = data.userDB || userDB;             // [추가]
             globalConfig = data.globalConfig || globalConfig; // [추가]
         }
     }
