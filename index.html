@@ -517,66 +517,63 @@ const firebaseConfig = {
 
     // [데이터 저장 함수 수정]
 window.saveAllData = async function() {
-    const data = {
-        charDB: window.charDB || [],
-        categoryDB: window.categoryDB || [],
-        termDB: window.termDB || [],
-        relationDB: window.relationDB || [],
-        userDB: window.userDB || [],
-        globalConfig: window.globalConfig || {},
-        // ✅ 이 줄이 없어서 새로고침 시 데이터가 옛날 것으로 덮어씌워졌던 것입니다.
-        updatedAt: Date.now() 
+        const data = {
+            charDB: window.charDB || [],
+            categoryDB: window.categoryDB || [],
+            termDB: window.termDB || [],
+            relationDB: window.relationDB || [],
+            userDB: window.userDB || [],
+            globalConfig: window.globalConfig || {}
+        };
+
+        // 1. 로컬 스토리지에 즉시 저장 (새로고침 시 증발 방지)
+        localStorage.setItem('aotu_world_data', JSON.stringify(data));
+
+        // 2. 파이어베이스에 저장
+        if (window.saveToFirebase) {
+            try {
+                await window.saveToFirebase(data);
+                console.log("✅ 데이터 동기화 완료");
+            } catch (e) {
+                console.error("저장 중 오류:", e);
+                // 파이어베이스 실패해도 로컬에는 저장되었으니 안심하세요.
+            }
+        }
     };
 
-    // 1. 로컬 스토리지에 저장
-    localStorage.setItem('aotu_world_data', JSON.stringify(data));
-
-    // 2. 파이어베이스에 저장 (set 함수를 직접 사용하여 저장 보장)
-    if (window.db) {
-        try {
-            const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
-            await set(ref(window.db, 'characters'), data);
-            console.log("✅ 서버와 동기화 완료: " + new Date().toLocaleTimeString());
-        } catch (e) {
-            console.error("서버 저장 실패:", e);
-        }
-    }
-};
-
 onValue(ref(db, 'characters'), (snapshot) => {
-    try {
-        const serverData = snapshot.val();
-        
-        if (serverData) {
-            const localDataString = localStorage.getItem('aotu_world_data');
-            let localData = localDataString ? JSON.parse(localDataString) : null;
+    const serverData = snapshot.val();
+    
+    if (serverData) {
+        // [추가] 로컬 데이터와 서버 데이터의 시간 비교
+        const localDataString = localStorage.getItem('aotu_world_data');
+        let localData = localDataString ? JSON.parse(localDataString) : null;
 
-            // 로컬 데이터가 있고, 로컬의 수정 시간이 서버보다 더 최신이면 덮어쓰지 않음
-            if (localData && localData.updatedAt && serverData.updatedAt) {
-                if (localData.updatedAt > serverData.updatedAt) {
-                    console.log("⚠️ 로컬 데이터가 더 최신이므로 서버 데이터를 무시합니다.");
-                    return; 
-                }
+        // 로컬 데이터가 있고, 로컬의 수정 시간이 서버보다 더 최신이면 덮어쓰지 않음
+        if (localData && localData.updatedAt && serverData.updatedAt) {
+            if (localData.updatedAt > serverData.updatedAt) {
+                console.log("⚠️ 로컬 데이터가 더 최신이므로 서버 데이터를 무시합니다.");
+                // 필요하다면 여기서 반대로 서버에 로컬 데이터를 다시 덮어씌우는 함수를 호출할 수도 있습니다.
+                // window.saveToFirebase(localData); 
+                return; 
             }
-
-            // 서버 데이터가 더 최신이거나 시간이 같으면 적용
-            window.charDB = serverData.charDB || window.charDB;
-            window.categoryDB = serverData.categoryDB || window.categoryDB;
-            window.termDB = serverData.termDB || window.termDB;
-            window.relationDB = serverData.relationDB || window.relationDB;
-            window.globalConfig = serverData.globalConfig || window.globalConfig;
-            window.userDB = serverData.userDB || window.userDB;
-
-            // UI 갱신
-            if (typeof renderCategories === 'function') renderCategories();
-            if (typeof renderCharList === 'function') renderCharList();
-            if (typeof renderTerms === 'function') renderTerms();
-            if (typeof renderRelSidebar === 'function') renderRelSidebar();
-            
-            console.log("🚀 서버 데이터와 동기화되었습니다.");
         }
-    } catch (error) {
-        console.error("❌ Firebase 동기화 중 오류:", error);
+
+        // 서버 데이터가 더 최신이거나 시간이 같으면 적용
+        window.charDB = serverData.charDB || window.charDB;
+        window.categoryDB = serverData.categoryDB || window.categoryDB;
+        window.termDB = serverData.termDB || window.termDB;
+        window.relationDB = serverData.relationDB || window.relationDB;
+        window.globalConfig = serverData.globalConfig || window.globalConfig;
+        window.userDB = serverData.userDB || window.userDB;
+
+        // UI 갱신
+        if (typeof renderCategories === 'function') renderCategories();
+        if (typeof renderCharList === 'function') renderCharList();
+        if (typeof renderTerms === 'function') renderTerms();
+        if (typeof renderRelSidebar === 'function') renderRelSidebar();
+        
+        console.log("🚀 서버 데이터와 동기화되었습니다.");
     }
 });
 
@@ -960,7 +957,6 @@ onValue(ref(db, 'characters'), (snapshot) => {
     ];
 
 let globalConfig = { bgmUrl: "", volume: 0.5 };
-
     let charDB = [
         { 
             id: 'char_001', name: 'ZERO', team: 'SOLO', isLeader: false, 
@@ -1037,21 +1033,21 @@ window.saveAllData = async function() {
         relationDB: window.relationDB || [],
         userDB: window.userDB || [],
         globalConfig: window.globalConfig || {},
-        updatedAt: Date.now() // ✅ 주석 제거! 반드시 실행되어야 함
+        // [추가] 마지막 수정 시간 기록
+        updatedAt: Date.now() 
     };
 
-    // 1. 로컬 스토리지에 저장
+    // 1. 로컬 스토리지 저장
     localStorage.setItem('aotu_world_data', JSON.stringify(data));
-    console.log("💾 로컬 저장 완료:", new Date(data.updatedAt).toLocaleTimeString());
 
-    // 2. 파이어베이스에 저장
-    if (window.db) {
+    // 2. 파이어베이스 저장
+    if (window.saveToFirebase) {
         try {
-            const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
-            await set(ref(window.db, 'characters'), data);
-            console.log("☁️ 서버 저장 완료:", new Date(data.updatedAt).toLocaleTimeString());
+            await window.saveToFirebase(data);
+            console.log("✅ 데이터 동기화 완료");
         } catch (e) {
-            console.error("❌ 서버 저장 실패:", e);
+            console.error("❌ 저장 실패 (권한 문제일 수 있음):", e);
+            alert("서버 저장에 실패했습니다. (콘솔 확인 필요)");
         }
     }
 };
@@ -1247,13 +1243,13 @@ function saveCharacter() {
     // [이미지 처리 로직] URL 입력이 있으면 그걸 우선, 없으면 파일/기존값 사용
     const urlInputVal = document.getElementById('inp-img-url').value.trim();
     const hiddenInputVal = document.getElementById('inp-img-final').value;
-    const finalImg = document.getElementById('inp-img-final').value;
+    const finalImage = urlInputVal ? urlInputVal : hiddenInputVal;
 
     const newChar = {
         id: id,
         name: name,
         team: team, // 여기서 팀 이름을 가져와서 저장합니다
-        image: finalImg,
+        image: finalImage, 
         isLeader: document.getElementById('inp-leader').checked,
         themeColor: document.getElementById('inp-theme-color').value,
         gender: document.getElementById('inp-gender').value,
