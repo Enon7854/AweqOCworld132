@@ -544,52 +544,39 @@ window.saveAllData = async function() {
 };
 
 onValue(ref(db, 'characters'), (snapshot) => {
-    const serverData = snapshot.val();
-    
-    if (serverData) {
-        const localDataString = localStorage.getItem('aotu_world_data');
-        let localData = localDataString ? JSON.parse(localDataString) : null;
+    try {
+        const serverData = snapshot.val();
+        
+        if (serverData) {
+            const localDataString = localStorage.getItem('aotu_world_data');
+            let localData = localDataString ? JSON.parse(localDataString) : null;
 
-        // ✅ 로컬이 더 최신이면 서버 데이터 무시
-        if (localData && localData.updatedAt && serverData.updatedAt) {
-            if (localData.updatedAt > serverData.updatedAt) {
-                console.log("⚠️ 로컬 데이터가 더 최신 - 서버 데이터 무시");
-                return; // ← 여기서 종료!
+            // 로컬 데이터가 있고, 로컬의 수정 시간이 서버보다 더 최신이면 덮어쓰지 않음
+            if (localData && localData.updatedAt && serverData.updatedAt) {
+                if (localData.updatedAt > serverData.updatedAt) {
+                    console.log("⚠️ 로컬 데이터가 더 최신이므로 서버 데이터를 무시합니다.");
+                    return; 
+                }
             }
+
+            // 서버 데이터가 더 최신이거나 시간이 같으면 적용
+            window.charDB = serverData.charDB || window.charDB;
+            window.categoryDB = serverData.categoryDB || window.categoryDB;
+            window.termDB = serverData.termDB || window.termDB;
+            window.relationDB = serverData.relationDB || window.relationDB;
+            window.globalConfig = serverData.globalConfig || window.globalConfig;
+            window.userDB = serverData.userDB || window.userDB;
+
+            // UI 갱신
+            if (typeof renderCategories === 'function') renderCategories();
+            if (typeof renderCharList === 'function') renderCharList();
+            if (typeof renderTerms === 'function') renderTerms();
+            if (typeof renderRelSidebar === 'function') renderRelSidebar();
+            
+            console.log("🚀 서버 데이터와 동기화되었습니다.");
         }
-
-        // ✅ 서버가 더 최신일 때만 적용
-        window.charDB = serverData.charDB || window.charDB;
-        window.categoryDB = serverData.categoryDB || window.categoryDB;
-        window.termDB = serverData.termDB || window.termDB;
-        window.relationDB = serverData.relationDB || window.relationDB;
-        window.globalConfig = serverData.globalConfig || window.globalConfig;
-        window.userDB = serverData.userDB || window.userDB;
-
-        // UI 갱신
-        if (typeof renderCategories === 'function') renderCategories();
-        if (typeof renderCharList === 'function') renderCharList();
-        if (typeof renderTerms === 'function') renderTerms();
-        if (typeof renderRelSidebar === 'function') renderRelSidebar();
-        
-        console.log("🚀 서버 데이터 동기화 완료");
-    }
-});
-        // 서버 데이터가 더 최신이거나 시간이 같으면 적용
-        window.charDB = serverData.charDB || window.charDB;
-        window.categoryDB = serverData.categoryDB || window.categoryDB;
-        window.termDB = serverData.termDB || window.termDB;
-        window.relationDB = serverData.relationDB || window.relationDB;
-        window.globalConfig = serverData.globalConfig || window.globalConfig;
-        window.userDB = serverData.userDB || window.userDB;
-
-        // UI 갱신
-        if (typeof renderCategories === 'function') renderCategories();
-        if (typeof renderCharList === 'function') renderCharList();
-        if (typeof renderTerms === 'function') renderTerms();
-        if (typeof renderRelSidebar === 'function') renderRelSidebar();
-        
-        console.log("🚀 서버 데이터와 동기화되었습니다.");
+    } catch (error) {
+        console.error("❌ Firebase 동기화 중 오류:", error);
     }
 });
 
