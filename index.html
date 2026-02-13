@@ -1001,30 +1001,25 @@ window.onload = function() {
         }
     }
 
-window.saveAllData = async function() {
-    const data = {
-        charDB: window.charDB || [],
-        categoryDB: window.categoryDB || [],
-        termDB: window.termDB || [],
-        relationDB: window.relationDB || [],
-        userDB: window.userDB || [],
-        globalConfig: window.globalConfig || {},
-        // [추가] 마지막 수정 시간 기록
-        updatedAt: Date.now() 
+window.saveAllData = function() {
+    const dataToSave = {
+        charDB: window.charDB,
+        categoryDB: window.categoryDB,
+        termDB: window.termDB,
+        relationDB: window.relationDB,
+        userDB: window.userDB,
+        globalConfig: window.globalConfig,
+        updatedAt: Date.now()
     };
 
-    // 1. 로컬 스토리지 저장
-    localStorage.setItem('aotu_world_data', JSON.stringify(data));
+    // 1. 로컬 스토리지 저장 (백업용)
+    localStorage.setItem('aotu_world_data', JSON.stringify(dataToSave));
 
-    // 2. 파이어베이스 저장
+    // 2. 파이어베이스 저장 (실제 서버 저장)
     if (window.saveToFirebase) {
-        try {
-            await window.saveToFirebase(data);
-            console.log("✅ 데이터 동기화 완료");
-        } catch (e) {
-            console.error("❌ 저장 실패 (권한 문제일 수 있음):", e);
-            alert("서버 저장에 실패했습니다. (콘솔 확인 필요)");
-        }
+        window.saveToFirebase(dataToSave);
+    } else {
+        console.error("파이어베이스 저장 함수를 찾을 수 없습니다.");
     }
 };
 
