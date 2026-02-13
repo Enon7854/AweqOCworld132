@@ -462,9 +462,8 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // 1. Firebase 설정
   const firebaseConfig = {
     apiKey: "AIzaSyAiS0NKi6QeQFEUlHQQDNKWbqoxopUhbEI",
     authDomain: "autocoworld.firebaseapp.com",
@@ -476,109 +475,52 @@
     measurementId: "G-8K6Q3H0JGX"
   };
 
-  try {
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    // 전역 변수로 할당 (콘솔 디버깅용)
-    window.db = db;
-
-    // -----------------------------------------------------------
-    // [중요] 데이터 저장 함수 (Firebase에 덮어쓰기)
-    // -----------------------------------------------------------
-    window.saveToFirebase = async function(data) {
-      try {
-        // 저장 시점의 시간을 갱신하여 저장
-        data.updatedAt = Date.now();
-        await set(ref(db, 'characters'), data);
-        console.log("✅ Firebase에 데이터 저장 성공!");
-      } catch (error) {
-        console.error("❌ Firebase 저장 실패:", error);
-        alert("데이터 저장에 실패했습니다. 인터넷 연결을 확인하세요.");
-      }
+  // 전역 저장 함수 정의 (어디서든 호출 가능하게 window에 할당)
+  window.saveToFirebase = function() {
+    // 현재 메모리에 있는 최신 데이터들을 수집
+    const dataToSave = {
+      charDB: window.charDB || [],
+      categoryDB: window.categoryDB || [],
+      termDB: window.termDB || [],
+      relationDB: window.relationDB || [],
+      userDB: window.userDB || [],
+      globalConfig: window.globalConfig || {},
+      updatedAt: Date.now()
     };
 
-    // -----------------------------------------------------------
-    // [핵심 수정] 데이터 동기화 (서버 데이터가 있으면 무조건 불러오기)
-    // -----------------------------------------------------------
-    onValue(ref(db, 'characters'), (snapshot) => {
-        const serverData = snapshot.val();
-        
-        if (serverData) {
-            console.log("🔥 서버에서 데이터를 감지했습니다. UI를 갱신합니다.");
+    console.log("📤 서버로 보낼 데이터:", dataToSave);
 
-            // 1. 전역 변수에 서버 데이터 할당 (없으면 빈 배열 [])
-            window.charDB = serverData.charDB || [];
-            window.categoryDB = serverData.categoryDB || [];
-            window.termDB = serverData.termDB || [];
-            window.relationDB = serverData.relationDB || [];
-            window.userDB = serverData.userDB || [];
-            window.globalConfig = serverData.globalConfig || { bgmUrl: "", volume: 0.5 };
-
-            // 2. 로컬 스토리지도 최신 상태로 백업
-            localStorage.setItem('aotu_world_data', JSON.stringify(serverData));
-
-            // 3. UI 강제 갱신 (데이터가 로드된 후 화면을 다시 그려야 함)
-            if (typeof window.renderCategories === 'function') window.renderCategories();
-            if (typeof window.renderCharList === 'function') window.renderCharList();
-            if (typeof window.renderTerms === 'function') window.renderTerms();
-            if (typeof window.renderRelSidebar === 'function') window.renderRelSidebar();
-            
-            // 만약 상세 페이지를 보고 있었다면 상세 페이지도 갱신
-            if (window.currentDetailId && typeof window.openDetail === 'function') {
-                // 현재 보고 있는 캐릭터가 삭제되지 않았는지 확인 후 갱신
-                const stillExists = window.charDB.find(c => c.id === window.currentDetailId);
-                if (stillExists) {
-                    window.openDetail(window.currentDetailId);
-                } else {
-                    // 보고 있던 캐릭터가 삭제되었으면 목록으로 이동
-                    if(typeof window.showSection === 'function') window.showSection('list');
-                }
-            }
-
-        } else {
-            console.log("⚠️ 서버에 저장된 데이터가 없습니다. (초기 상태)");
-        }
-    });
-
-    console.log("%c[Firebase] 시스템 연결 성공", "color: #00f0ff; font-weight: bold; background: #000; padding: 5px;");
-
-  } catch (error) {
-    console.error("%c[Firebase] 초기화 실패!", "color: #ff4444; font-weight: bold;");
-    console.error(error);
-  }
-
-  // -----------------------------------------------------------
-  // [기능 유지] 이미지 처리 헬퍼 함수들
-  // -----------------------------------------------------------
-  window.handleImageUpload = function(input) {
-      if (input.files && input.files[0]) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-              const previewBox = document.getElementById('img-preview-box');
-              if(previewBox) {
-                  previewBox.style.display = 'block';
-                  previewBox.style.backgroundImage = `url('${e.target.result}')`;
-              }
-              document.getElementById('inp-img-final').value = e.target.result;
-              document.getElementById('inp-img-url').value = '';
-          };
-          reader.readAsDataURL(input.files[0]);
-      }
+    set(ref(db, 'characters'), dataToSave)
+      .then(() => console.log("✅ Firebase 저장 완료!"))
+      .catch((error) => console.error("❌ Firebase 저장 실패:", error));
   };
 
-  window.handleImageUrl = function(input) {
-      const url = input.value.trim();
-      if (url) {
-          const previewBox = document.getElementById('img-preview-box');
-          if(previewBox) {
-              previewBox.style.display = 'block';
-              previewBox.style.backgroundImage = `url('${url}')`;
-          }
-          document.getElementById('inp-img-final').value = url;
-          document.getElementById('inp-img-file').value = '';
-      }
-  };
+  // 데이터 불러오기
+  onValue(ref(db, 'characters'), (snapshot) => {
+    const data = snapshot.val();
+    
+    // 서버에 데이터가 하나라도 있으면 (updatedAt이 있으면 데이터가 있는 것)
+    if (data && data.updatedAt) {
+      console.log("📥 서버 데이터를 불러왔습니다.");
+      window.charDB = data.charDB || [];
+      window.categoryDB = data.categoryDB || [];
+      window.termDB = data.termDB || [];
+      window.relationDB = data.relationDB || [];
+      window.userDB = data.userDB || [];
+      window.globalConfig = data.globalConfig || window.globalConfig;
+    } else {
+      console.log("❓ 서버가 비어있습니다. 기본 데이터를 유지합니다.");
+      // 서버가 비어있을 때만 saveToFirebase()를 한 번 실행해서 기본값을 서버에 올릴 수 있습니다.
+    }
+
+    // 데이터 로드 후 화면 갱신 함수들 호출
+    if (typeof renderCategories === "function") renderCategories();
+    if (typeof renderCharList === "function") renderCharList();
+    if (typeof renderTerms === "function") renderTerms();
+  }, { onlyOnce: false });
 
 </script>
 
@@ -1002,7 +944,8 @@ window.onload = function() {
     }
 
 window.saveAllData = function() {
-    const dataToSave = {
+    // 1. 로컬 저장 (브라우저 백업)
+    const data = {
         charDB: window.charDB,
         categoryDB: window.categoryDB,
         termDB: window.termDB,
@@ -1011,15 +954,11 @@ window.saveAllData = function() {
         globalConfig: window.globalConfig,
         updatedAt: Date.now()
     };
+    localStorage.setItem('aotu_world_data', JSON.stringify(data));
 
-    // 1. 로컬 스토리지 저장 (백업용)
-    localStorage.setItem('aotu_world_data', JSON.stringify(dataToSave));
-
-    // 2. 파이어베이스 저장 (실제 서버 저장)
-    if (window.saveToFirebase) {
-        window.saveToFirebase(dataToSave);
-    } else {
-        console.error("파이어베이스 저장 함수를 찾을 수 없습니다.");
+    // 2. 파이어베이스로 전송 (위에서 만든 함수 호출)
+    if (typeof window.saveToFirebase === 'function') {
+        window.saveToFirebase();
     }
 };
 
