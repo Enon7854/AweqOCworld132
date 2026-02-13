@@ -478,50 +478,59 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // 전역 저장 함수 정의 (어디서든 호출 가능하게 window에 할당)
+  // [중요] 저장 함수: window 객체에 있는 데이터를 가져와서 저장
   window.saveToFirebase = function() {
-    // 현재 메모리에 있는 최신 데이터들을 수집
     const dataToSave = {
       charDB: window.charDB || [],
       categoryDB: window.categoryDB || [],
       termDB: window.termDB || [],
       relationDB: window.relationDB || [],
       userDB: window.userDB || [],
-      globalConfig: window.globalConfig || {},
+      globalConfig: window.globalConfig || { bgmUrl: "", volume: 0.5 },
       updatedAt: Date.now()
     };
 
-    console.log("📤 서버로 보낼 데이터:", dataToSave);
+    console.log("📤 Firebase로 데이터 전송 중...", dataToSave);
 
     set(ref(db, 'characters'), dataToSave)
-      .then(() => console.log("✅ Firebase 저장 완료!"))
+      .then(() => console.log("✅ Firebase 저장 성공!"))
       .catch((error) => console.error("❌ Firebase 저장 실패:", error));
   };
 
-  // 데이터 불러오기
+  // [중요] 불러오기 및 실시간 동기화
   onValue(ref(db, 'characters'), (snapshot) => {
     const data = snapshot.val();
     
-    // 서버에 데이터가 하나라도 있으면 (updatedAt이 있으면 데이터가 있는 것)
-    if (data && data.updatedAt) {
-      console.log("📥 서버 데이터를 불러왔습니다.");
+    if (data) {
+      console.log("📥 서버에서 데이터를 수신했습니다.");
+      
+      // 서버 데이터를 전역 변수에 반영
       window.charDB = data.charDB || [];
       window.categoryDB = data.categoryDB || [];
       window.termDB = data.termDB || [];
       window.relationDB = data.relationDB || [];
       window.userDB = data.userDB || [];
-      window.globalConfig = data.globalConfig || window.globalConfig;
+      window.globalConfig = data.globalConfig || { bgmUrl: "", volume: 0.5 };
+
+      // 화면 갱신 함수들 호출
+      if (typeof window.renderCategories === "function") window.renderCategories();
+      if (typeof window.renderCharList === "function") window.renderCharList();
+      if (typeof window.renderTerms === "function") window.renderTerms();
+      if (typeof window.renderRelSidebar === "function") window.renderRelSidebar();
+      
+      // 설정(BGM 등)이 있다면 적용
+      if (window.globalConfig && typeof window.changeVolume === 'function') {
+         // UI 반영 등 필요한 로직
+         const volInput = document.getElementById('set-bgm-vol');
+         if(volInput) volInput.value = window.globalConfig.volume;
+      }
+
     } else {
-      console.log("❓ 서버가 비어있습니다. 기본 데이터를 유지합니다.");
-      // 서버가 비어있을 때만 saveToFirebase()를 한 번 실행해서 기본값을 서버에 올릴 수 있습니다.
+      console.log("❓ 서버 데이터가 없습니다. 현재 로컬 데이터를 서버에 업로드하여 초기화합니다.");
+      // 서버가 비어있으면 현재 기본값(window.charDB 등)을 서버로 쏘아 올림
+      window.saveToFirebase();
     }
-
-    // 데이터 로드 후 화면 갱신 함수들 호출
-    if (typeof renderCategories === "function") renderCategories();
-    if (typeof renderCharList === "function") renderCharList();
-    if (typeof renderTerms === "function") renderTerms();
-  }, { onlyOnce: false });
-
+  });
 </script>
 
 <body>
@@ -867,15 +876,16 @@
 </div>
 
 <script>
-    // [1] 데이터 베이스
-    let categoryDB = [
+    // [1] 데이터 베이스 (window 객체에 직접 할당하여 모듈과 공유)
+    window.categoryDB = [
         { name: 'TEAM KING', color: '#ffd700' },
         { name: 'TEAM RAY', color: '#00ff88' },
         { name: 'SOLO', color: '#888888' }
     ];
 
-let globalConfig = { bgmUrl: "", volume: 0.5 };
-    let charDB = [
+    window.globalConfig = { bgmUrl: "", volume: 0.5 };
+
+    window.charDB = [
         { 
             id: 'char_001', name: 'ZERO', team: 'SOLO', isLeader: false, 
             gender: 'Male', age: '17', origin: 'Mining Planet 7', birth: '12.25', 
@@ -903,11 +913,13 @@ let globalConfig = { bgmUrl: "", volume: 0.5 };
             stats: { atk: 9.5, def: 7, spd: 8, int: 4, pot: 8, sur: 9 }
         }
     ];
-    let termDB = [
+
+    window.termDB = [
         { id: 't1', title: '원력 (Meta Energy)', content: '참가자가 시스템으로부터 부여받는 고유한 잠재 능력. 각자의 성격이나 소망에 따라 형태가 결정됩니다.', isEditing: false },
         { id: 't2', title: '심판관 (Arbitrators)', content: '대회의 공정성을 관리(하는 척 하는) 창세신의 대리인들. 강력한 권한을 가집니다.', isEditing: false }
     ];
-    let relationDB = [
+
+    window.relationDB = [
         { source: 'char_001', target: 'char_002', type: 'hostile', memo: '시끄러워서 싫음' },
         { source: 'char_002', target: 'char_001', type: 'hostile', memo: '재수없는 녀석' }
     ];
@@ -929,7 +941,6 @@ let globalConfig = { bgmUrl: "", volume: 0.5 };
     let currentActiveTab = 1; // [NEW] 현재 보고 있는 탭 추적
 
 window.onload = function() {
-        loadAllData();
         renderCategories();
         renderCharList();
         renderTerms();
@@ -944,23 +955,25 @@ window.onload = function() {
     }
 
 window.saveAllData = function() {
-    // 1. 로컬 저장 (브라우저 백업)
-    const data = {
-        charDB: window.charDB,
-        categoryDB: window.categoryDB,
-        termDB: window.termDB,
-        relationDB: window.relationDB,
-        userDB: window.userDB,
-        globalConfig: window.globalConfig,
-        updatedAt: Date.now()
+        // Firebase 저장 (가장 중요)
+        if (typeof window.saveToFirebase === 'function') {
+            window.saveToFirebase();
+        } else {
+            console.error("Firebase 저장 함수를 찾을 수 없습니다.");
+        }
+        
+        // (선택사항) 로컬 백업도 유지하고 싶다면:
+        const data = {
+            charDB: window.charDB,
+            categoryDB: window.categoryDB,
+            termDB: window.termDB,
+            relationDB: window.relationDB,
+            userDB: window.userDB,
+            globalConfig: window.globalConfig,
+            updatedAt: Date.now()
+        };
+        localStorage.setItem('aotu_world_data', JSON.stringify(data));
     };
-    localStorage.setItem('aotu_world_data', JSON.stringify(data));
-
-    // 2. 파이어베이스로 전송 (위에서 만든 함수 호출)
-    if (typeof window.saveToFirebase === 'function') {
-        window.saveToFirebase();
-    }
-};
 
 // [이미지 업로드 처리 함수 - window에 강제 등록]
     window.handleImageUpload = function(input) {
