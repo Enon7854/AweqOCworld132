@@ -162,61 +162,112 @@
         }
         .char-card:hover .card-delete-btn { opacity: 1; background: rgba(255, 68, 68, 0.8); }
 
-        /* [SECTION 2] CHARACTER DETAIL */
-        .detail-container { display: flex; gap: 40px; }
+/* [SECTION 2] CHARACTER DETAIL - SPLIT LAYOUT */
+.detail-container { display: flex; gap: 40px; height: 85vh; }
+
+/* 시각적 영역 (전신 + 초상화) */
 .detail-visual {
-    flex: 1.5; /* 크기를 조금 더 키웠습니다 (기존 1.2 -> 1.5) */
-    height: 85vh; /* 높이를 조금 더 확보 */
-    background: radial-gradient(circle, rgba(0,240,255,0.1) 0%, rgba(0,0,0,0) 70%);
+    flex: 1.8;
+    display: flex;
+    gap: 15px;
+    height: 100%;
+}
+
+/* 1. 왼쪽 블럭: 전신 (Full Body) */
+.visual-fullbody {
+    flex: 2;
+    position: relative;
+    background: radial-gradient(circle at center bottom, rgba(0,240,255,0.1) 0%, rgba(0,0,0,0) 60%);
     border: 1px solid #333;
-    position: sticky; 
-    top: 40px;
     overflow: hidden;
     display: flex;
     justify-content: center;
-    align-items: flex-end; /* 캐릭터가 아래쪽에 발을 붙이도록 설정 */
+    align-items: flex-end;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
 }
-        .detail-data { flex: 1; position: relative; }
 
-        #detail-name-bg {
-            position: absolute; 
-            bottom: 0px; 
-            left: 130px;
-            font-size: 140px; 
-            opacity: 0.15; 
-            font-style: italic; 
-            font-weight: 900;
-            white-space: nowrap; 
-            line-height: 1; 
-            transform: rotate(-90deg); 
-            transform-origin: 0 100%; 
-            pointer-events: none; 
-            z-index: 1; 
-            color: #fff;
-            text-transform: uppercase;
-        }
-        
+#detail-name-bg {
+    position: absolute; 
+    top: 100%;
+    left: 0px;
+    padding-left: 20px
+    padding-top: 10px;
+    font-size: 100px; 
+    opacity: 0.12; 
+    font-style: italic; 
+    font-weight: 900;
+    white-space: nowrap; 
+    line-height: 1; 
+    transform: rotate(-90deg);
+    transform-origin: top left;
+    pointer-events: none; 
+    z-index: 1; 
+    color: #fff;
+    text-transform: uppercase;
+    font-family: 'Arial Black', sans-serif;
+}
+
 #detail-char-img {
     position: absolute;
     bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 105%; /* 기존 95%에서 105%로 키워 영역을 꽉 채우거나 살짝 넘치게 연출 */
+    width: auto;
+    max-width: none; /* 너비 제한 해제 */
     z-index: 2;
     pointer-events: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: opacity 0.5s ease;
 }
 
 #detail-char-img img {
-    display: block;
     height: 100%;
-    max-height: 90vh;
-    width: auto; 
-    object-fit: contain; 
-    filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.2));
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
 }
+
+/* 2. 오른쪽 블럭: 초상화 (Portrait) */
+.visual-portrait-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* [수정됨] 정사각형 비율 (1 / 1) */
+.portrait-frame {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* 정사각형 */
+    background: #111;
+    border: 2px solid var(--neon-blue);
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+}
+
+#detail-portrait-img {
+    width: 100%; height: 100%;
+    background-size: cover; background-position: top center; /* 정사각형이라 상단 중심 기준이 더 자연스러움 */
+    transition: 0.3s;
+}
+
+.portrait-info {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #333;
+    padding: 15px;
+    font-size: 12px;
+    color: var(--text-sub);
+    display: flex; flex-direction: column; gap: 5px;
+}
+
+/* 데이터 영역 (기존 유지) */
+.detail-data { flex: 1.2; position: relative; overflow-y: auto; padding-right: 10px; }
 
         /* TABS */
         .detail-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid #333; align-items: flex-end; }
@@ -585,113 +636,121 @@
                 <button class="nav-btn" onclick="showSection('list')">◀ BACK TO LIST</button>
             </div>
             
-            <div class="detail-container">
-                <div class="detail-visual">
-                    <div id="char-effect"></div>
-                    <h1 id="detail-name-bg">NAME</h1>
-                    <div id="detail-char-img"></div>
-                </div>
+<div class="detail-container">
+    <div class="detail-visual">
+        <div class="visual-fullbody">
+            <h1 id="detail-name-bg">NAME</h1>
+            <div id="detail-char-img"></div> </div>
 
-                <div class="detail-data">
-                    <div class="detail-tabs">
-                        <button class="tab-btn active" onclick="switchTab(1)">01 ID</button>
-                        <button class="tab-btn" onclick="switchTab(2)">02 STORY</button>
-                        <button class="tab-btn" onclick="switchTab(3)">03 META</button>
-                        <button class="tab-btn" onclick="switchTab(4)">04 RELATION</button>
-                        <button class="tab-edit-btn" onclick="openEditForCurrentTab()" title="Edit Current Page">✎</button>
-                    </div>
-
-                    <div id="tab-1" class="tab-content active">
-                        <h1 style="font-size: 50px; line-height: 1;">
-                            <span id="detail-name">NAME</span> 
-                            <span style="font-size:18px; color:var(--neon-yellow); margin-left:10px;" id="detail-team">TEAM</span>
-                            <span id="detail-leader-badge"></span>
-                        </h1>
-                        <p id="detail-catchphrase" style="font-size: 24px; font-weight: bold; color: #fff; margin: 20px 0; font-style: italic; text-shadow: 0 0 10px rgba(255,255,255,0.3);">
-                            "CATCHPHRASE HERE"
-                        </p>
-
-                        <div class="data-box" style="margin-bottom:30px;">
-                             <h3 style="color:var(--neon-blue); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:5px;">PERSONAL PROFILE</h3>
-                             <ul class="profile-grid" id="detail-profile-list"></ul>
-                        </div>
-
-                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-left: 2px solid var(--neon-blue);">
-                            <h3 style="color: #fff; font-size: 12px; margin-bottom: 10px; opacity: 0.7;">INTRODUCTION</h3>
-                            <p id="detail-intro" style="line-height: 1.6; color: #ddd; white-space: pre-wrap;">-</p>
-                        </div>
-                    </div>
-
-                    <div id="tab-2" class="tab-content">
-                        <div style="margin-bottom: 30px;">
-                            <h3 style="color:var(--neon-yellow); margin-bottom: 10px;">PERSONALITY</h3>
-                            <p id="detail-personality" style="color: var(--text-sub); line-height: 1.6; white-space: pre-wrap;">-</p>
-                        </div>
-                        <div style="margin-bottom: 30px;">
-                            <h3 style="color:var(--neon-blue); margin-bottom: 10px;">BACKGROUND</h3>
-                            <blockquote id="detail-background" style="border-left: 3px solid #444; padding-left: 15px; color: #ccc; line-height: 1.6; white-space: pre-wrap;">-</blockquote>
-                        </div>
-                        <div>
-                            <h3 style="color:var(--text-sub); font-size: 12px; margin-bottom: 10px;">TRIVIA & ETC</h3>
-                            <p id="detail-trivia" style="color: #888; font-size: 13px; white-space: pre-wrap;">-</p>
-                        </div>
-                    </div>
-
-                    <div id="tab-3" class="tab-content">
-                        <div class="weapon-box">
-                            <h3 style="color:var(--neon-yellow); font-size:14px; letter-spacing:2px;">WEAPON & META</h3>
-                            <p style="margin-top:5px; font-size:24px; font-weight: bold;"><b id="detail-meta-name">Weapon Name</b></p>
-                            <p style="color:#fff; margin-top: 10px; line-height: 1.5;" id="detail-meta-desc">Description</p>
-                        </div>
-                        <div style="background:rgba(0,0,0,0.3); padding:20px; text-align: center;">
-                            <h3 style="color:var(--neon-blue); margin-bottom: 20px;">ABILITY PARAMETERS</h3>
-                            <canvas id="statCanvas" width="350" height="350" style="margin: 0 auto; display:block;"></canvas>
-                        </div>
-                    </div>
-
-                    <div id="tab-4" class="tab-content">
-                        <h3 style="color:var(--neon-blue); margin-bottom:15px;">SOCIAL NETWORK SETTINGS</h3>
-                        <div class="rel-editor">
-                            <h4 style="color:#ccc; font-size:12px; margin-bottom:10px;">ADD NEW CONNECTION</h4>
-                            <div class="rel-form">
-                                <div style="flex:1;">
-                                    <select id="new-rel-target" class="rel-input"></select>
-                                </div>
-                                <div style="width:120px;">
-                                    <select id="new-rel-type" class="rel-input">
-                                        <option value="friendly">Friendly (우호)</option>
-                                        <option value="best_friend">Best Friend (절친)</option>
-                                        <option value="friend">Friend (친구)</option>
-                                        <option value="like">Like (호감)</option>
-                                        <option value="lover">Lover (연인)</option>
-                                        <option value="crush">Crush (짝사랑)</option>
-                                        <option value="family">Family (가족)</option>
-                                        <option value="hostile">Hostile (적대)</option>
-                                        <option value="hate">Hate (혐오)</option>
-                                    </select>
-                                </div>
-                                <div style="flex:2;">
-                                    <input type="text" id="new-rel-memo" class="rel-input" placeholder="Memo (ex. Rival)">
-                                </div>
-                                <button onclick="addRelation()" class="btn-small btn-add">ADD</button>
-                            </div>
-                        </div>
-
-                        <table class="rel-table">
-                            <thead>
-                                <tr>
-                                    <th width="25%">TARGET</th>
-                                    <th width="20%">TYPE</th>
-                                    <th>MEMO</th>
-                                    <th width="10%">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detail-rel-tbody"></tbody>
-                        </table>
-                    </div>
+        <div class="visual-portrait-area">
+            <div class="portrait-frame">
+                <div id="detail-portrait-img"></div> <div style="position:absolute; bottom:0; left:0; width:100%; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; text-align:center; padding:3px;">ID PHOTO</div>
+            </div>
+            <div class="portrait-info">
+                <div style="color:var(--neon-yellow); font-weight:bold; font-size:14px; border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:5px;">STATUS</div>
+                <div id="detail-status-text">
+                    Team: <span id="detail-mini-team">-</span><br>
+                    Class: <span id="detail-mini-class">Contestant</span>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
+
+    <div class="detail-data">
+        <div class="detail-tabs">
+            <button class="tab-btn active" onclick="switchTab(1)">01 ID</button>
+            <button class="tab-btn" onclick="switchTab(2)">02 STORY</button>
+            <button class="tab-btn" onclick="switchTab(3)">03 META</button>
+            <button class="tab-btn" onclick="switchTab(4)">04 RELATION</button>
+            <button class="tab-edit-btn" onclick="openEditForCurrentTab()" title="Edit">✎</button>
+        </div>
+
+        <div id="tab-1" class="tab-content active">
+            <h1 style="font-size: 46px; line-height: 1;">
+                <span id="detail-name">NAME</span> 
+                <span style="font-size:16px; color:var(--neon-yellow); margin-left:10px;" id="detail-team">TEAM</span>
+                <span id="detail-leader-badge"></span>
+            </h1>
+            <p id="detail-catchphrase" style="font-size: 20px; font-weight: bold; color: #fff; margin: 15px 0; font-style: italic; opacity:0.8;">"CATCHPHRASE"</p>
+            
+            <div class="data-box" style="margin-bottom:30px;">
+                    <h3 style="color:var(--neon-blue); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:5px;">PERSONAL PROFILE</h3>
+                    <ul class="profile-grid" id="detail-profile-list"></ul>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-left: 2px solid var(--neon-blue);">
+                <h3 style="color: #fff; font-size: 12px; margin-bottom: 10px; opacity: 0.7;">INTRODUCTION</h3>
+                <p id="detail-intro" style="line-height: 1.6; color: #ddd; white-space: pre-wrap;">-</p>
+            </div>
+        </div>
+        <div id="tab-2" class="tab-content">
+            <div style="margin-bottom: 30px;">
+                <h3 style="color:var(--neon-yellow); margin-bottom: 10px;">PERSONALITY</h3>
+                <p id="detail-personality" style="color: var(--text-sub); line-height: 1.6; white-space: pre-wrap;">-</p>
+            </div>
+            <div style="margin-bottom: 30px;">
+                <h3 style="color:var(--neon-blue); margin-bottom: 10px;">BACKGROUND</h3>
+                <blockquote id="detail-background" style="border-left: 3px solid #444; padding-left: 15px; color: #ccc; line-height: 1.6; white-space: pre-wrap;">-</blockquote>
+            </div>
+            <div>
+                <h3 style="color:var(--text-sub); font-size: 12px; margin-bottom: 10px;">TRIVIA & ETC</h3>
+                <p id="detail-trivia" style="color: #888; font-size: 13px; white-space: pre-wrap;">-</p>
+            </div>
+        </div>
+
+        <div id="tab-3" class="tab-content">
+            <div class="weapon-box">
+                <h3 style="color:var(--neon-yellow); font-size:14px; letter-spacing:2px;">WEAPON & META</h3>
+                <p style="margin-top:5px; font-size:24px; font-weight: bold;"><b id="detail-meta-name">Weapon Name</b></p>
+                <p style="color:#fff; margin-top: 10px; line-height: 1.5;" id="detail-meta-desc">Description</p>
+            </div>
+            <div style="background:rgba(0,0,0,0.3); padding:20px; text-align: center;">
+                <h3 style="color:var(--neon-blue); margin-bottom: 20px;">ABILITY PARAMETERS</h3>
+                <canvas id="statCanvas" width="350" height="350" style="margin: 0 auto; display:block;"></canvas>
+            </div>
+        </div>
+
+        <div id="tab-4" class="tab-content">
+            <h3 style="color:var(--neon-blue); margin-bottom:15px;">SOCIAL NETWORK SETTINGS</h3>
+            <div class="rel-editor">
+                <h4 style="color:#ccc; font-size:12px; margin-bottom:10px;">ADD NEW CONNECTION</h4>
+                <div class="rel-form">
+                    <div style="flex:1;">
+                        <select id="new-rel-target" class="rel-input"></select>
+                    </div>
+                    <div style="width:120px;">
+                        <select id="new-rel-type" class="rel-input">
+                            <option value="friendly">Friendly (우호)</option>
+                            <option value="best_friend">Best Friend (절친)</option>
+                            <option value="friend">Friend (친구)</option>
+                            <option value="like">Like (호감)</option>
+                            <option value="lover">Lover (연인)</option>
+                            <option value="crush">Crush (짝사랑)</option>
+                            <option value="family">Family (가족)</option>
+                            <option value="hostile">Hostile (적대)</option>
+                            <option value="hate">Hate (혐오)</option>
+                        </select>
+                    </div>
+                    <div style="flex:2;">
+                        <input type="text" id="new-rel-memo" class="rel-input" placeholder="Memo (ex. Rival)">
+                    </div>
+                    <button onclick="addRelation()" class="btn-small btn-add">ADD</button>
+                </div>
+            </div>
+
+            <table class="rel-table">
+                <thead>
+                    <tr>
+                        <th width="25%">TARGET</th>
+                        <th width="20%">TYPE</th>
+                        <th>MEMO</th>
+                        <th width="10%">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="detail-rel-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>        </section>
 
         <section id="world" class="section">
             <h2 class="page-title">WORLD ARCHIVE</h2>
@@ -771,17 +830,34 @@
                 <div class="form-group" style="margin-bottom: 15px; background: rgba(255,255,255,0.03); padding: 10px;">
                     <label style="color:var(--neon-yellow);">CHARACTER IMAGE</label>
                     <div style="display:flex; gap:10px; flex-direction: column;">
-                        <input type="file" id="inp-img-file" accept="image/*" style="padding: 5px;" onchange="handleImageUpload(this)">
-                        <input type="text" id="inp-img-url" placeholder="OR Image URL (https://...)" oninput="handleImageUrl(this)">
-                        <input type="hidden" id="inp-img-final">
+<div class="input-grid">
+    <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 10px;">
+        <label style="color:var(--neon-blue);">FULL BODY IMAGE (전신)</label>
+        <div style="display:flex; gap:5px; flex-direction: column;">
+            <input type="file" accept="image/*" style="padding: 5px;" onchange="handleImageUploadNew(this, 'inp-img-full', 'preview-full')">
+            <input type="text" id="inp-img-url-full" placeholder="OR Image URL" oninput="handleImageUrlNew(this, 'inp-img-full', 'preview-full')">
+            <input type="hidden" id="inp-img-full"> <div id="preview-full" style="width: 100%; height: 100px; background: #000; border: 1px solid #444; background-size: cover; background-position: center; display:none; margin-top:5px;"></div>
+        </div>
+    </div>
+
+    <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 10px;">
+        <label style="color:var(--neon-yellow);">PORTRAIT IMAGE (초상화/흉상)</label>
+        <div style="display:flex; gap:5px; flex-direction: column;">
+            <input type="file" accept="image/*" style="padding: 5px;" onchange="handleImageUploadNew(this, 'inp-img-portrait', 'preview-portrait')">
+            <input type="text" id="inp-img-url-portrait" placeholder="OR Image URL" oninput="handleImageUrlNew(this, 'inp-img-portrait', 'preview-portrait')">
+            <input type="hidden" id="inp-img-portrait"> <div id="preview-portrait" style="width: 100%; height: 100px; background: #000; border: 1px solid #444; background-size: cover; background-position: center; display:none; margin-top:5px;"></div>
+        </div>
+    </div>
+</div>                        <input type="hidden" id="inp-img-final">
                         <div id="img-preview-box" style="width: 100px; height: 100px; background: #000; border: 1px solid #444; background-size: cover; background-position: center; display:none; margin-top:5px;"></div>
                     </div>
                 </div>
                 
-                <div class="input-grid">
-                    <div class="form-group"><label>Name (이름)</label><input type="text" id="inp-name" placeholder="Character Name"></div>
-                    <div class="form-group">
-                        <label>Affiliation (팀/소속)</label>
+<div class="input-grid">
+    <div class="form-group"><label>Name (이름)</label><input type="text" id="inp-name" placeholder="Character Name"></div>
+    <div class="form-group"><label>English Name (배경용 영문)</label><input type="text" id="inp-eng-name" placeholder="ex) ZERO" style="color:var(--neon-yellow);"></div>
+    <div class="form-group">
+        <label>Affiliation (팀/소속)</label>
                         <div style="display:flex; gap:10px; align-items:center;">
                             <select id="inp-team" style="flex:1;"></select>
                             <div style="display:flex; align-items:center; color:#fff; font-size:12px;">
@@ -815,8 +891,10 @@
                 <h2 style="color:var(--neon-blue); margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">STORY ARCHIVE</h2>
                 <div class="form-group" style="margin-bottom:15px;"><label>Personality (성격)</label><textarea id="inp-personality" rows="5" placeholder="성격 묘사"></textarea></div>
                 <div class="form-group" style="margin-bottom:15px;"><label>Background (과거/배경)</label><textarea id="inp-background" rows="5" placeholder="과거 이야기"></textarea></div>
-                <div class="form-group" style="margin-bottom:15px;"><label>Trivia (기타 설정)</label><input type="text" id="inp-trivia" placeholder="사소한 설정들"></div>
-            </div>
+                <div class="form-group" style="margin-bottom:15px;">
+    <label>Trivia (기타 설정)</label>
+    <textarea id="inp-trivia" rows="5" placeholder="TMI, 호불호, 버릇 등 다양한 기타 설정을 자유롭게 적어주세요."></textarea>
+</div>
 
             <div id="edit-tab-3" class="edit-section">
                 <h2 style="color:var(--neon-blue); margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">META SYSTEM</h2>
@@ -975,32 +1053,37 @@ window.saveAllData = function() {
         localStorage.setItem('aotu_world_data', JSON.stringify(data));
     };
 
-// [이미지 업로드 처리 함수 - window에 강제 등록]
-    window.handleImageUpload = function(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const previewBox = document.getElementById('img-preview-box');
+// [NEW] 다목적 이미지 업로드 핸들러
+window.handleImageUploadNew = function(input, targetId, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewBox = document.getElementById(previewId);
+            if(previewBox) {
                 previewBox.style.display = 'block';
                 previewBox.style.backgroundImage = `url('${e.target.result}')`;
-                document.getElementById('inp-img-final').value = e.target.result;
-                document.getElementById('inp-img-url').value = '';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    };
+            }
+            document.getElementById(targetId).value = e.target.result;
+            // 같은 그룹의 URL 입력창 비우기 (ID 추론)
+            const urlInputId = targetId === 'inp-img-full' ? 'inp-img-url-full' : 'inp-img-url-portrait';
+            const urlInput = document.getElementById(urlInputId);
+            if(urlInput) urlInput.value = '';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
 
-    // [이미지 URL 처리 함수 - window에 강제 등록]
-    window.handleImageUrl = function(input) {
-        const url = input.value.trim();
-        if (url) {
-            const previewBox = document.getElementById('img-preview-box');
+window.handleImageUrlNew = function(input, targetId, previewId) {
+    const url = input.value.trim();
+    if (url) {
+        const previewBox = document.getElementById(previewId);
+        if(previewBox) {
             previewBox.style.display = 'block';
             previewBox.style.backgroundImage = `url('${url}')`;
-            document.getElementById('inp-img-final').value = url;
-            document.getElementById('inp-img-file').value = '';
         }
-    };
+        document.getElementById(targetId).value = url;
+    }
+};
 
     function loadAllData() {
         const saved = localStorage.getItem('aotu_world_data');
@@ -1137,19 +1220,15 @@ window.saveAllData = function() {
         }
     };
 
-    // [이미지 URL 입력 처리 함수] - 바로 아래칸에 있는 기능도 같이 추가해 드립니다.
     window.handleImageUrl = function(input) {
         const url = input.value.trim();
         if (url) {
-            // 1. 미리보기 표시
             const previewBox = document.getElementById('img-preview-box');
             previewBox.style.display = 'block';
             previewBox.style.backgroundImage = `url('${url}')`;
             
-            // 2. 최종 저장될 input에 URL 넣기
             document.getElementById('inp-img-final').value = url;
             
-            // 3. 파일 업로드 입력창은 초기화
             document.getElementById('inp-img-file').value = '';
         }
     };
@@ -1159,19 +1238,21 @@ function saveCharacter() {
     const id = document.getElementById('inp-id').value || ('char_' + Date.now());
     const name = document.getElementById('inp-name').value;
     const team = document.getElementById('inp-team').value;
+    const engName = document.getElementById('inp-eng-name').value;
 
     if (!name) { alert('이름을 입력해주세요.'); return; }
 
-    // [이미지 처리 로직] URL 입력이 있으면 그걸 우선, 없으면 파일/기존값 사용
-    const urlInputVal = document.getElementById('inp-img-url').value.trim();
-    const hiddenInputVal = document.getElementById('inp-img-final').value;
-    const finalImage = urlInputVal ? urlInputVal : hiddenInputVal;
+    // [이미지 저장 로직 변경]
+    const imgFull = document.getElementById('inp-img-full').value;
+    const imgPortrait = document.getElementById('inp-img-portrait').value;
 
     const newChar = {
         id: id,
         name: name,
-        team: team, // 여기서 팀 이름을 가져와서 저장합니다
-        image: finalImage, 
+        engName: engName,
+        team: team,
+        image: imgFull,         // 전신 이미지
+        imagePortrait: imgPortrait, // 초상화 이미지 (신규 필드)
         isLeader: document.getElementById('inp-leader').checked,
         themeColor: document.getElementById('inp-theme-color').value,
         gender: document.getElementById('inp-gender').value,
@@ -1204,12 +1285,11 @@ function saveCharacter() {
     const idx = charDB.findIndex(c => c.id === id);
     if (idx !== -1) { charDB[idx] = newChar; } else { charDB.push(newChar); }
 
-    saveAllData(); // 로컬+파이어베이스 둘 다 저장
+    saveAllData(); 
     renderCharList();
     renderRelSidebar();
     closeInputModal();
 
-    // 만약 현재 보고 있는 캐릭터를 수정한 거라면 상세페이지도 즉시 갱신
     if(currentDetailId === id) openDetail(id);
 }
 
@@ -1278,64 +1358,73 @@ function saveCharacter() {
 
     // --- CHARACTER DETAIL VIEW ---
 function openDetail(id) {
-        currentDetailId = id;
-        const char = charDB.find(c => c.id === id);
-        if(!char) return;
-        
-        showSection('detail'); 
-        switchTab(1); // 기본 1번 탭
-        
-        let teamColor = '#ffd700';
-        const catObj = categoryDB.find(c => c.name === char.team);
-        if(catObj) teamColor = catObj.color;
-        const charTheme = char.themeColor || '#00f0ff';
+    currentDetailId = id;
+    const char = charDB.find(c => c.id === id);
+    if(!char) return;
+    
+    showSection('detail'); 
+    switchTab(1); 
+    
+    let teamColor = '#ffd700';
+    const catObj = categoryDB.find(c => c.name === char.team);
+    if(catObj) teamColor = catObj.color;
+    const charTheme = char.themeColor || '#00f0ff';
 
-        // [수정됨] 이름 설정
-        const nameEl = document.getElementById('detail-name');
-        nameEl.innerText = char.name;
-        nameEl.style.color = charTheme;      
-        nameEl.style.textShadow = `0 0 20px ${charTheme}`; 
+    // 텍스트 정보 설정
+    const nameEl = document.getElementById('detail-name');
+    nameEl.innerText = char.name;
+    nameEl.style.color = charTheme;      
+    nameEl.style.textShadow = `0 0 20px ${charTheme}`; 
 
-        // [추가됨] 팀 이름 설정 (이 부분이 빠져 있었습니다!)
-        const teamEl = document.getElementById('detail-team');
-        if(teamEl) {
-            teamEl.innerText = char.team; // 예: TEAM KING
-            teamEl.style.color = teamColor;
-        }
-
-        // 배경 텍스트 설정
-        const bgNameEl = document.getElementById('detail-name-bg');
-        bgNameEl.innerText = char.name.toUpperCase();
-        bgNameEl.style.color = '#ffffff'; 
-        bgNameEl.style.opacity = '0.1';   
-
-        // 이미지 설정
-        const charImgEl = document.getElementById('detail-char-img');
-        charImgEl.innerHTML = ''; 
-        if(char.image) {
-            const imgTag = document.createElement('img');
-            imgTag.src = char.image;
-            charImgEl.appendChild(imgTag);
-        }
-        
-        document.getElementById('detail-catchphrase').innerText = `"${char.catchphrase || 'No Catchphrase'}"`;
-        document.getElementById('detail-intro').innerText = char.intro || 'No Introduction.';
-        
-        const profileList = document.getElementById('detail-profile-list');
-        profileList.innerHTML = `<li><b>Gender:</b> ${char.gender}</li><li><b>Age:</b> ${char.age}</li><li><b>Birth:</b> ${char.birth}</li><li><b>Origin:</b> ${char.origin}</li><li><b>Height:</b> ${char.height}</li><li><b>Weight:</b> ${char.weight}</li><li><b>Blood:</b> ${char.blood}</li><li><b>Sign:</b> ${char.sign}</li><li><b>Likes:</b> ${char.like}</li><li><b>Food:</b> ${char.food}</li>`;
-
-        document.getElementById('detail-personality').innerText = char.personality || 'No Data';
-        document.getElementById('detail-background').innerText = char.background || 'No Data';
-        document.getElementById('detail-trivia').innerText = char.trivia || '-';
-        
-        const metaNameEl = document.getElementById('detail-meta-name');
-        metaNameEl.innerText = char.metaName;
-        metaNameEl.style.color = charTheme; 
-
-        document.getElementById('detail-meta-desc').innerText = char.metaDesc;
-        
-        renderDetailRelations(char.id);
+    const teamEl = document.getElementById('detail-team');
+    if(teamEl) {
+        teamEl.innerText = char.team; 
+        teamEl.style.color = teamColor;
     }
+
+    const bgNameEl = document.getElementById('detail-name-bg');
+    bgNameEl.innerText = (char.engName || char.name).toUpperCase();
+    bgNameEl.style.color = '#ffffff'; 
+
+    // [이미지 처리 1: 전신]
+    const charImgEl = document.getElementById('detail-char-img');
+    charImgEl.innerHTML = ''; 
+    if(char.image) {
+        const imgTag = document.createElement('img');
+        imgTag.src = char.image;
+        charImgEl.appendChild(imgTag);
+    }
+
+    // [이미지 처리 2: 초상화]
+    const portraitEl = document.getElementById('detail-portrait-img');
+    // 초상화가 없으면 전신 이미지를 대신 사용하거나 비워둠
+    const portraitSrc = char.imagePortrait ? char.imagePortrait : (char.image || '');
+    portraitEl.style.backgroundImage = `url('${portraitSrc}')`;
+
+    // [초상화 아래 미니 정보]
+    document.getElementById('detail-mini-team').innerText = char.team;
+    document.getElementById('detail-mini-team').style.color = teamColor;
+
+    document.getElementById('detail-catchphrase').innerText = `"${char.catchphrase || 'No Catchphrase'}"`;
+    document.getElementById('detail-catchphrase').style.color = charTheme; // 테마색 적용
+
+    document.getElementById('detail-intro').innerText = char.intro || 'No Introduction.';
+    
+    const profileList = document.getElementById('detail-profile-list');
+    profileList.innerHTML = `<li><b>Gender:</b> ${char.gender}</li><li><b>Age:</b> ${char.age}</li><li><b>Birth:</b> ${char.birth}</li><li><b>Origin:</b> ${char.origin}</li><li><b>Height:</b> ${char.height}</li><li><b>Weight:</b> ${char.weight}</li><li><b>Blood:</b> ${char.blood}</li><li><b>Sign:</b> ${char.sign}</li><li><b>Likes:</b> ${char.like}</li><li><b>Food:</b> ${char.food}</li>`;
+
+    document.getElementById('detail-personality').innerText = char.personality || 'No Data';
+    document.getElementById('detail-background').innerText = char.background || 'No Data';
+    document.getElementById('detail-trivia').innerText = char.trivia || '-';
+    
+    const metaNameEl = document.getElementById('detail-meta-name');
+    metaNameEl.innerText = char.metaName;
+    metaNameEl.style.color = charTheme; 
+
+    document.getElementById('detail-meta-desc').innerText = char.metaDesc;
+    
+    renderDetailRelations(char.id);
+}
 
     function addRelation() {
         if(!currentDetailId) return;
@@ -1373,85 +1462,103 @@ function openDetail(id) {
     }
 
     // --- MODAL ---
-    function openInputModal(editId = null, startTab = 1) {
-        const modal = document.getElementById('inputModal');
-        const previewBox = document.getElementById('img-preview-box');
+function openInputModal(editId = null, startTab = 1) {
+    const modal = document.getElementById('inputModal');
+    
+    // 미리보기 박스들 초기화
+    const previewFull = document.getElementById('preview-full');
+    const previewPortrait = document.getElementById('preview-portrait');
+
+    // 팀 선택 옵션 채우기 (기존 코드와 동일)
+    const teamSelect = document.getElementById('inp-team');
+    teamSelect.innerHTML = '';
+    categoryDB.forEach(cat => { 
+        const opt = document.createElement('option'); 
+        opt.value = cat.name; 
+        opt.innerText = cat.name; 
+        teamSelect.appendChild(opt); 
+    });
+    
+    document.getElementById('inp-id').value = editId ? editId : '';
+
+    if(editId) {
+        const char = charDB.find(c => c.id === editId);
+        document.getElementById('inp-name').value = char.name; 
+        document.getElementById('inp-eng-name').value = char.engName || '';
         
-        const teamSelect = document.getElementById('inp-team');
-        teamSelect.innerHTML = '';
-        categoryDB.forEach(cat => { 
-            const opt = document.createElement('option'); 
-            opt.value = cat.name; 
-            opt.innerText = cat.name; 
-            teamSelect.appendChild(opt); 
+        // [이미지 로드 로직 변경]
+        document.getElementById('inp-img-full').value = char.image || '';
+        document.getElementById('inp-img-portrait').value = char.imagePortrait || '';
+        document.getElementById('inp-img-url-full').value = '';
+        document.getElementById('inp-img-url-portrait').value = '';
+
+        if(char.image) {
+            previewFull.style.display = 'block';
+            previewFull.style.backgroundImage = `url('${char.image}')`;
+        } else { previewFull.style.display = 'none'; }
+
+        if(char.imagePortrait) {
+            previewPortrait.style.display = 'block';
+            previewPortrait.style.backgroundImage = `url('${char.imagePortrait}')`;
+        } else { previewPortrait.style.display = 'none'; }
+
+        // 나머지 필드 채우기 (기존 코드와 동일)
+        teamSelect.value = char.team; 
+        document.getElementById('inp-leader').checked = char.isLeader === true;
+        document.getElementById('inp-theme-color').value = char.themeColor || '#00f0ff';
+        document.getElementById('inp-gender').value = char.gender; 
+        document.getElementById('inp-age').value = char.age;
+        document.getElementById('inp-origin').value = char.origin; 
+        document.getElementById('inp-birth').value = char.birth;
+        document.getElementById('inp-height').value = char.height; 
+        document.getElementById('inp-weight').value = char.weight;
+        document.getElementById('inp-blood').value = char.blood; 
+        document.getElementById('inp-sign').value = char.sign;
+        document.getElementById('inp-like').value = char.like; 
+        document.getElementById('inp-food').value = char.food;
+        document.getElementById('inp-meta-name').value = char.metaName; 
+        document.getElementById('inp-meta-desc').value = char.metaDesc;
+        document.getElementById('inp-catchphrase').value = char.catchphrase || ''; 
+        document.getElementById('inp-intro').value = char.intro || '';
+        document.getElementById('inp-personality').value = char.personality || ''; 
+        document.getElementById('inp-background').value = char.background || '';
+        document.getElementById('inp-trivia').value = char.trivia || '';
+
+        const s = char.stats || { atk:5, def:5, spd:5, int:5, pot:5, sur:5 };
+        document.getElementById('inp-stat-atk').value = s.atk;
+        document.getElementById('inp-stat-def').value = s.def;
+        document.getElementById('inp-stat-spd').value = s.spd;
+        document.getElementById('inp-stat-int').value = s.int;
+        document.getElementById('inp-stat-pot').value = s.pot;
+        document.getElementById('inp-stat-sur').value = s.sur;
+
+    } else {
+        // [신규 등록 시 초기화]
+        document.querySelectorAll('#inputModal input, #inputModal textarea').forEach(el => {
+            if(el.type !== 'checkbox' && el.type !== 'color' && el.type !== 'hidden') el.value = '';
         });
+        document.getElementById('inp-gender').value = 'Male'; 
+        if(categoryDB.length > 0) teamSelect.value = categoryDB[0].name;
+        document.getElementById('inp-leader').checked = false;
+        document.getElementById('inp-theme-color').value = '#00f0ff'; 
         
-        document.getElementById('inp-id').value = editId ? editId : '';
+        // 이미지 필드 초기화
+        document.getElementById('inp-img-full').value = '';
+        document.getElementById('inp-img-portrait').value = '';
+        previewFull.style.display = 'none';
+        previewPortrait.style.display = 'none';
 
-        if(editId) {
-            const char = charDB.find(c => c.id === editId);
-            document.getElementById('inp-name').value = char.name; 
-            document.getElementById('inp-img-final').value = char.image || '';
-            document.getElementById('inp-img-url').value = '';
-            
-            if(char.image) {
-                previewBox.style.display = 'block';
-                previewBox.style.backgroundImage = `url('${char.image}')`;
-            } else {
-                previewBox.style.display = 'none';
-            }
-            teamSelect.value = char.team; 
-            document.getElementById('inp-leader').checked = char.isLeader === true;
-            document.getElementById('inp-gender').value = char.gender; 
-            document.getElementById('inp-age').value = char.age;
-            document.getElementById('inp-origin').value = char.origin; 
-            document.getElementById('inp-birth').value = char.birth;
-            document.getElementById('inp-height').value = char.height; 
-            document.getElementById('inp-weight').value = char.weight;
-            document.getElementById('inp-blood').value = char.blood; 
-            document.getElementById('inp-sign').value = char.sign;
-            document.getElementById('inp-like').value = char.like; 
-            document.getElementById('inp-food').value = char.food;
-            document.getElementById('inp-meta-name').value = char.metaName; 
-            document.getElementById('inp-meta-desc').value = char.metaDesc;
-            document.getElementById('inp-catchphrase').value = char.catchphrase || ''; 
-            document.getElementById('inp-intro').value = char.intro || '';
-            document.getElementById('inp-personality').value = char.personality || ''; 
-            document.getElementById('inp-background').value = char.background || '';
-            document.getElementById('inp-trivia').value = char.trivia || '';
-            document.getElementById('inp-theme-color').value = char.themeColor || '#00f0ff';
-
-            const s = char.stats || { atk:5, def:5, spd:5, int:5, pot:5, sur:5 };
-            document.getElementById('inp-stat-atk').value = s.atk;
-            document.getElementById('inp-stat-def').value = s.def;
-            document.getElementById('inp-stat-spd').value = s.spd;
-            document.getElementById('inp-stat-int').value = s.int;
-            document.getElementById('inp-stat-pot').value = s.pot;
-            document.getElementById('inp-stat-sur').value = s.sur;
-
-        } else {
-            document.querySelectorAll('#inputModal input, #inputModal textarea').forEach(el => {
-                if(el.type !== 'checkbox' && el.type !== 'color' && el.type !== 'hidden') el.value = '';
-            });
-            document.getElementById('inp-gender').value = 'Male'; 
-            if(categoryDB.length > 0) teamSelect.value = categoryDB[0].name;
-            document.getElementById('inp-leader').checked = false;
-            document.getElementById('inp-theme-color').value = '#00f0ff'; 
-            document.getElementById('inp-img-final').value = '';
-            document.getElementById('inp-img-url').value = '';
-            previewBox.style.display = 'none';
-
-            document.getElementById('inp-stat-atk').value = 5;
-            document.getElementById('inp-stat-def').value = 5;
-            document.getElementById('inp-stat-spd').value = 5;
-            document.getElementById('inp-stat-int').value = 5;
-            document.getElementById('inp-stat-pot').value = 5;
-            document.getElementById('inp-stat-sur').value = 5;
-        }
-        
-        switchEditTab(startTab); // 모달 열릴 때 원하는 탭으로 시작
-        modal.style.display = 'flex';
+        document.getElementById('inp-stat-atk').value = 5;
+        document.getElementById('inp-stat-def').value = 5;
+        document.getElementById('inp-stat-spd').value = 5;
+        document.getElementById('inp-stat-int').value = 5;
+        document.getElementById('inp-stat-pot').value = 5;
+        document.getElementById('inp-stat-sur').value = 5;
     }
+    
+    switchEditTab(startTab); 
+    modal.style.display = 'flex';
+}
     
     function closeInputModal() { document.getElementById('inputModal').style.display = 'none'; }
     
