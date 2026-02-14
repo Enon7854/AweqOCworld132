@@ -141,7 +141,14 @@
             transition: 0.3s;
         }
         .char-card:hover { transform: translateY(-5px); box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
-        .card-img { width: 100%; height: 65%; background: #222; background-size: cover; background-position: center; }
+.card-img { 
+    width: 100%; 
+    height: 65%; 
+    background-color: #222; 
+    background-size: cover;       /* 꽉 채우기 (확대됨) */
+    background-position: top center; /* 무조건 위쪽(얼굴)을 기준으로 정렬 */
+    background-repeat: no-repeat;
+}
         .card-info { padding: 15px; }
         .card-name { font-size: 20px; font-weight: bold; color: #fff; display: block; }
         .card-meta { font-size: 11px; color: var(--neon-yellow); margin-top: 4px; display: block; text-transform: uppercase; }
@@ -436,15 +443,6 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
         }
         #user-status:hover { border-color: var(--neon-yellow); }
-
-        .card-img { 
-            width: 100%; 
-            height: 65%; 
-            background-color: #222; 
-            background-size: cover; 
-            background-position: top center; 
-            background-repeat: no-repeat;
-        }
 
         #detail-char-img {
             position: absolute;
@@ -1337,7 +1335,8 @@ window.deleteCategory = function(catName) {
             const catObj = window.categoryDB.find(c => c.name === char.team);
             if(catObj) teamColor = catObj.color;
             
-            const bgStyle = char.image ? `background-image: url('${char.image}');` : '';
+            const imgToShow = char.imagePortrait || char.image;
+            const bgStyle = imgToShow ? `background-image: url('${imgToShow}');` : '';
 
             card.innerHTML = `
             <button class="card-delete-btn" onclick="deleteCharacter('${char.id}')">✕</button>
