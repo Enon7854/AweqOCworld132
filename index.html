@@ -537,6 +537,192 @@
         @keyframes modalSlide { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-content { animation: modalSlide 0.3s ease-out; }
 
+
+/* [ERROR MODE STYLES] */
+body.error-mode {
+    --neon-blue: #ff0000 !important;   /* 파란색 -> 빨간색 */
+    --neon-yellow: #ff3333 !important; /* 노란색 -> 붉은 주황색 */
+    --bg-deep: #110505 !important;     /* 배경 -> 붉은 검정 */
+    --text-sub: #aa5555 !important;
+}
+
+body.error-mode .logo {
+    animation: glitch-anim 0.3s infinite;
+    color: #ff0000;
+    text-shadow: 2px 2px #000, -2px -2px #ff3333;
+}
+
+/* 에러 박스 디자인 */
+.error-popup-box {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid #ff0000;
+    color: #ff0000;
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 12px;
+    z-index: 99999;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+    animation: popIn 0.2s ease-out;
+    pointer-events: none; /* 클릭 방지 (사용 방해 X) */
+    max-width: 250px;
+}
+
+.error-popup-box::before {
+    content: "⚠ SYSTEM WARNING";
+    display: block;
+    background: #ff0000;
+    color: #000;
+    padding: 2px 5px;
+    margin-bottom: 8px;
+    font-size: 10px;
+}
+
+@keyframes glitch-anim {
+    0% { transform: translate(0) }
+    20% { transform: translate(-2px, 2px) }
+    40% { transform: translate(-2px, -2px) }
+    60% { transform: translate(2px, 2px) }
+    80% { transform: translate(2px, -2px) }
+    100% { transform: translate(0) }
+}
+@keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* [MYSTERY ERROR POPUP] */
+.center-error-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8); /* 배경을 어둡게 처리 */
+    z-index: 99998;
+    backdrop-filter: blur(2px);
+}
+
+.center-error-box {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%); /* 정중앙 정렬 */
+    background: #000;
+    border: 2px solid #fff;
+    padding: 40px 60px;
+    text-align: center;
+    z-index: 99999;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+    animation: popIn 0.3s ease-out;
+}
+
+.center-error-text {
+    color: #fff;
+    font-size: 24px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+    text-shadow: 0 0 5px #fff;
+}
+
+.center-close-btn {
+    background: transparent;
+    border: 1px solid #555;
+    color: #555;
+    padding: 8px 20px;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 12px;
+    transition: 0.3s;
+}
+
+.center-close-btn:hover {
+    border-color: #fff;
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+}
+
+/* [ANGEL MODE] - "천사" 닉네임 전용 화이트/흑백 테마 */
+body.angel-mode {
+    --bg-deep: #ffffff !important;
+    --bg-panel: #f2f2f4 !important; /* 약간의 회색 빛이 도는 패널 배경 */
+    --neon-blue: #000000 !important;   /* 포인트 컬러 -> 완전 검정 */
+    --neon-yellow: #444444 !important; /* 보조 컬러 -> 진한 회색 */
+    --text-main: #000000 !important;   /* 메인 글자 -> 검정 */
+    --text-sub: #666666 !important;    /* 서브 글자 -> 진회색 */
+    background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px) !important;
+}
+
+/* 1. 모든 흰색 글자 강제 변경 */
+body.angel-mode, 
+body.angel-mode .card-name, 
+body.angel-mode h1, 
+body.angel-mode h2, 
+body.angel-mode h3,
+body.angel-mode .stat-box span,
+body.angel-mode #detail-name,
+body.angel-mode #detail-name-bg,
+body.angel-mode .modal-content,
+body.angel-mode .form-group input,
+body.angel-mode .form-group textarea {
+    color: #000000 !important;
+    text-shadow: none !important; /* 네온 효과 제거 */
+}
+
+/* 2. 캐릭터 카드 보정 */
+body.angel-mode .char-card {
+    background: #ffffff !important;
+    border: 1px solid #dddddd !important;
+    border-top: 4px solid #000000 !important; /* 위쪽 포인트 라인 검정색 */
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.05) !important;
+}
+body.angel-mode .card-img {
+    background-color: #f9f9f9 !important;
+    border-bottom: 1px solid #eee !important;
+}
+body.angel-mode .card-meta {
+    color: #888 !important;
+}
+
+/* 3. 사이드바 및 네비게이션 */
+body.angel-mode .sidebar {
+    background: #f8f8f8 !important;
+    border-right: 1px solid #ddd !important;
+}
+body.angel-mode .nav-btn {
+    color: #666 !important;
+    border-color: #eee !important;
+}
+body.angel-mode .nav-btn:hover, body.angel-mode .nav-btn.active {
+    background: #000 !important;
+    color: #fff !important; /* 선택된 버튼만 반전해서 흰색 글자 */
+}
+
+/* 4. 상단 유저 상태바 */
+body.angel-mode #user-status {
+    background: #fff !important;
+    border: 1px solid #000 !important;
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.1) !important;
+}
+
+/* 5. 모달(수정창) 배경 */
+body.angel-mode .modal-content,
+body.angel-mode .modal-sidebar {
+    background: #ffffff !important;
+    border-color: #000 !important;
+}
+body.angel-mode .modal-nav-btn {
+    color: #888 !important;
+}
+body.angel-mode .modal-nav-btn.active {
+    background: #eee !important;
+    color: #000 !important;
+}
+
+/* 6. 디테일 페이지 배경 글자 (거대 이름) */
+body.angel-mode #detail-name-bg {
+    opacity: 0.05 !important; /* 너무 진하지 않게 아주 연하게 처리 */
+}
     </style>
 </head>
 
@@ -1880,24 +2066,15 @@ window.removeRelation = function(s, t) {
 
     window.addEventListener('resize', () => { if(currentRelChar) drawDynamicRelations(currentRelChar); });
 
-    window.checkPassword = function() {
+window.checkPassword = function() {
         const input = document.getElementById('site-password').value.trim();
         const foundUser = window.userDB.find(u => u.code === input);
 
         if (foundUser) {
+            // [기존 오디오 로직 유지...]
             const audio = document.getElementById('bgm-player');
             const config = window.globalConfig || { bgmUrl: "", volume: 0.5 };
-            const bgm = config.bgmUrl ? config.bgmUrl.trim() : "";
-            
-            if (audio && bgm.length > 5 && !bgm.includes('youtu')) {
-                try {
-                    audio.src = bgm; 
-                    audio.volume = config.volume || 0.5;
-                    audio.play().catch(e => console.warn("오디오 재생 실패 (무시됨):", e));
-                } catch (err) {
-                    console.warn("오디오 소스 설정 중 오류:", err);
-                }
-            }
+            // (중략: 기존 오디오 재생 코드 그대로 두시면 됩니다)
 
             alert("SYSTEM ACCESS GRANTED.\n환영합니다, " + foundUser.name + "님.");
             
@@ -1906,21 +2083,97 @@ window.removeRelation = function(s, t) {
             
             updateUserUI(foundUser.name);
             document.getElementById('password-overlay').style.display = 'none'; 
+
+            //1. 모렌 해킹
+            if (foundUser.code === "Ero_|v|0I2)^/" || foundUser.name === "모렌") {
+                triggerErrorMode();
+            } 
+            //2. 아르크 접속
+            else if (foundUser.code === "alstromeria" || foundUser.name === "Unknown") {
+                triggerCenterPopup();
+            }
+
+
         } else {
             document.getElementById('pw-error').style.display = 'block';
             document.getElementById('site-password').value = ''; 
         }
     }
 
-    function updateUserUI(userName) {
+    let glitchInterval = null;
+
+    window.triggerErrorMode = function() {
+        document.body.classList.add('error-mode'); //
+        
+        const errorMsgs = [
+            "FATAL ERROR: DATA CORRUPTED",
+            "UNAUTHORIZED ACCESS DETECTED",
+            "SYSTEM KERNEL PANIC",
+            "MEMORY LEAK: 0xFF4A2",
+            "CONNECTION UNSTABLE",
+            "WARNING: SECURITY BREACH"
+        ];
+
+        let count = 0;
+        
+        glitchInterval = setInterval(() => {
+            if(count > 10) { 
+                clearInterval(glitchInterval); 
+                return; 
+            }
+            
+            const msg = errorMsgs[Math.floor(Math.random() * errorMsgs.length)];
+            createErrorBox(msg);
+            count++;
+        }, 300);
+
+        setTimeout(() => {
+            document.addEventListener('click', window.clearErrorMode, { once: true });
+        }, 100);
+    }
+
+    window.clearErrorMode = function() {
+        document.body.classList.remove('error-mode');
+
+        if (glitchInterval) clearInterval(glitchInterval);
+
+        const boxes = document.querySelectorAll('.error-popup-box');
+        boxes.forEach(box => box.remove());
+        
+        console.log("SYSTEM RESTORED : NORMAL MODE");
+    }
+
+    function createErrorBox(text) {
+        const box = document.createElement('div');
+        box.className = 'error-popup-box';
+        box.innerHTML = text + "<br><span style='font-size:10px; opacity:0.7'>code: " + Math.random().toString(16).substr(2, 8) + "</span>";
+        
+        // 화면 내 랜덤 위치
+        const x = Math.random() * (window.innerWidth - 200);
+        const y = Math.random() * (window.innerHeight - 100);
+        
+        box.style.left = x + 'px';
+        box.style.top = y + 'px';
+        
+        document.body.appendChild(box);
+    }
+
+function updateUserUI(userName) {
         const statusDiv = document.getElementById('user-status');
-        const nameDisplay = document.getElementById('user-name-display')
+        const nameDisplay = document.getElementById('user-name-display');
         const loginScreen = document.getElementById('password-overlay'); 
 
         if (userName) {
             if(nameDisplay) nameDisplay.innerText = userName;
             if(statusDiv) statusDiv.style.display = 'flex';
             if(loginScreen) loginScreen.style.display = 'none';
+
+            // [추가된 로직] 닉네임에 '천사'가 포함되어 있는지 확인
+            if (userName.includes("천사")) {
+                document.body.classList.add('angel-mode'); // 화이트 모드 켜기
+            } else {
+                document.body.classList.remove('angel-mode'); // 끄기
+            }
         }
     }
     
@@ -2171,6 +2424,32 @@ window.toggleMusic = function() {
             openTeamDetail(teamName); 
             document.getElementById('teamEditModal').style.display = 'none'; 
         }
+    }
+
+// [새로 추가] 중앙 에러 팝업 함수
+    window.triggerCenterPopup = function() {
+
+        const overlay = document.createElement('div');
+        overlay.className = 'center-error-overlay';
+        overlay.id = 'mystery-overlay';
+        const box = document.createElement('div');
+        box.className = 'center-error-box';
+        
+        box.innerHTML = `
+            <div class="center-error-text">Are you ■■■■■■■?</div>
+            <button class="center-close-btn" onclick="closeCenterPopup()">✕ CLOSE</button>
+        `;
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(box);
+    }
+
+    window.closeCenterPopup = function() {
+        const overlay = document.getElementById('mystery-overlay');
+        const box = document.querySelector('.center-error-box');
+        
+        if(box) box.remove();
+        if(overlay) overlay.remove();
     }
 
 
