@@ -640,90 +640,166 @@ body.error-mode .logo {
     background: rgba(255,255,255,0.1);
 }
 
-/* [ANGEL MODE] - "천사" 닉네임 전용 화이트/흑백 테마 */
+/* [ANGEL MODE] - 완전 흑백/고대비 모드 (흰 글씨 강제 제거) */
 body.angel-mode {
     --bg-deep: #ffffff !important;
-    --bg-panel: #f2f2f4 !important; /* 약간의 회색 빛이 도는 패널 배경 */
-    --neon-blue: #000000 !important;   /* 포인트 컬러 -> 완전 검정 */
-    --neon-yellow: #444444 !important; /* 보조 컬러 -> 진한 회색 */
-    --text-main: #000000 !important;   /* 메인 글자 -> 검정 */
-    --text-sub: #666666 !important;    /* 서브 글자 -> 진회색 */
-    background-image: 
-        linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px) !important;
+    --bg-panel: #ffffff !important;
+    --neon-blue: #000000 !important;   /* 포인트 컬러 -> 검정 */
+    --neon-yellow: #333333 !important; /* 보조 컬러 -> 짙은 회색 */
+    --neon-red: #555555 !important;
+    --text-main: #000000 !important;
+    --text-sub: #333333 !important;
+    
+    background-color: #ffffff !important;
+    background-image: none !important; /* 배경 격자 제거 */
 }
 
-/* 1. 모든 흰색 글자 강제 변경 */
-body.angel-mode, 
-body.angel-mode .card-name, 
-body.angel-mode h1, 
-body.angel-mode h2, 
-body.angel-mode h3,
-body.angel-mode .stat-box span,
-body.angel-mode #detail-name,
-body.angel-mode #detail-name-bg,
-body.angel-mode .modal-content,
-body.angel-mode .form-group input,
-body.angel-mode .form-group textarea {
+/* [핵심] 모든 요소의 글자색을 검정으로 강제 변경 (!important로 인라인 스타일 덮어쓰기) */
+body.angel-mode * {
     color: #000000 !important;
-    text-shadow: none !important; /* 네온 효과 제거 */
+    text-shadow: none !important; /* 네온 빛 번짐 효과 제거 */
+    box-shadow: none !important;  /* 박스 그림자 제거 */
 }
 
-/* 2. 캐릭터 카드 보정 */
-body.angel-mode .char-card {
-    background: #ffffff !important;
-    border: 1px solid #dddddd !important;
-    border-top: 4px solid #000000 !important; /* 위쪽 포인트 라인 검정색 */
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.05) !important;
-}
-body.angel-mode .card-img {
-    background-color: #f9f9f9 !important;
-    border-bottom: 1px solid #eee !important;
-}
-body.angel-mode .card-meta {
-    color: #888 !important;
-}
-
-/* 3. 사이드바 및 네비게이션 */
-body.angel-mode .sidebar {
-    background: #f8f8f8 !important;
-    border-right: 1px solid #ddd !important;
-}
-body.angel-mode .nav-btn {
-    color: #666 !important;
-    border-color: #eee !important;
-}
-body.angel-mode .nav-btn:hover, body.angel-mode .nav-btn.active {
-    background: #000 !important;
-    color: #fff !important; /* 선택된 버튼만 반전해서 흰색 글자 */
-}
-
-/* 4. 상단 유저 상태바 */
-body.angel-mode #user-status {
-    background: #fff !important;
-    border: 1px solid #000 !important;
-    box-shadow: 4px 4px 0px rgba(0,0,0,0.1) !important;
-}
-
-/* 5. 모달(수정창) 배경 */
+/* 특정 요소들의 배경 및 테두리 정리 */
+body.angel-mode .sidebar,
 body.angel-mode .modal-content,
-body.angel-mode .modal-sidebar {
+body.angel-mode .char-card,
+body.angel-mode .stat-header,
+body.angel-mode #team-info-card,
+body.angel-mode .data-box,
+body.angel-mode .accordion-content,
+body.angel-mode .rel-node {
     background: #ffffff !important;
+    border: 1px solid #000000 !important; /* 테두리를 진하게 */
+}
+
+/* 입력창 스타일 (흰 배경, 검은 테두리) */
+body.angel-mode input,
+body.angel-mode textarea,
+body.angel-mode select {
+    background: #f8f8f8 !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+}
+
+/* 버튼 스타일 (마우스 올렸을 때만 반전) */
+body.angel-mode .nav-btn,
+body.angel-mode .sys-btn,
+body.angel-mode .filter-tag,
+body.angel-mode .tab-btn {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+}
+
+body.angel-mode .nav-btn.active,
+body.angel-mode .nav-btn:hover,
+body.angel-mode .filter-tag.active,
+body.angel-mode .tab-btn.active {
+    background: #000000 !important;     /* 선택된 건 검은 배경 */
+    color: #ffffff !important;           /* 선택된 건 흰 글씨 */
+}
+/* 선택된 버튼 내부의 자식 요소도 흰색으로 (중요) */
+body.angel-mode .nav-btn.active *,
+body.angel-mode .nav-btn:hover *,
+body.angel-mode .filter-tag.active * {
+    color: #ffffff !important;
+}
+
+/* 관계도 선 색상 강제 변경 (Canvas는 CSS로 안되지만, 노드는 변경) */
+body.angel-mode .rel-node {
+    background: #fff !important;
     border-color: #000 !important;
 }
-body.angel-mode .modal-nav-btn {
-    color: #888 !important;
-}
-body.angel-mode .modal-nav-btn.active {
-    background: #eee !important;
-    color: #000 !important;
+
+/* 거대 배경 글씨 (너무 진하면 방해되므로 연한 회색) */
+body.angel-mode #detail-name-bg {
+    color: #f0f0f0 !important;
+    opacity: 1 !important;
 }
 
-/* 6. 디테일 페이지 배경 글자 (거대 이름) */
-body.angel-mode #detail-name-bg {
-    opacity: 0.05 !important; /* 너무 진하지 않게 아주 연하게 처리 */
+/* 7. [추가] 카테고리 팀 이름 (기본 회색, 선택 시 흰색) */
+body.angel-mode .team-chip .team-chip-name {
+    color: #888888 !important; 
 }
-    </style>
+body.angel-mode .team-chip.active .team-chip-name {
+    color: #ffffff !important; 
+}
+
+/* 8. [추가] 관계도 페이지 캐릭터 목록 (기본 회색, 마우스오버/선택 시 검정 배경에 흰 글씨) */
+body.angel-mode .rel-char-item {
+    color: #888888 !important;
+}
+body.angel-mode .rel-char-item:hover, 
+body.angel-mode .rel-char-item.active {
+    color: #ffffff !important;
+    background: #000000 !important; /* 네온 블루 배경을 검정색으로 덮어씌움 */
+}
+
+/* 9. [추가] 관계 척도 이름 (디테일 뱃지, 관계도 노드 태그, 범례 텍스트) */
+body.angel-mode .rel-badge,
+body.angel-mode .rel-node span,
+body.angel-mode .legend-item,
+body.angel-mode .legend-item span {
+    color: #888888 !important;
+    border-color: #888888 !important; /* 뱃지 테두리도 회색으로 통일 */
+}
+
+/* 10. (보너스) 칩과 범례의 컬러 박스 자체도 회색으로 빼고 싶다면 적용 */
+body.angel-mode .legend-color,
+body.angel-mode .team-chip-color {
+    background-color: #555555 !important;
+}
+
+/* 1. 관계도 페이지 캐릭터 목록 이름 (흰색으로 변경) */
+body.angel-mode .rel-char-item {
+    color: #ffffff !important;
+    border-bottom: 1px solid #00000 !important;
+}
+
+/* 관계도 목록 마우스 오버/선택 시 */
+body.angel-mode .rel-char-item:hover, 
+body.angel-mode .rel-char-item.active {
+    background: #000000 !important; /* 배경 검정 */
+    color: #ffffff !important; /* 글자 흰색 유지 */
+}
+
+/* 2. 상단 유저 상태바 (글자 및 아이콘 흰색 반전) */
+body.angel-mode #user-status {
+    background: #000000 !important; /* 바 배경을 검정으로 변경 */
+    border: 1px solid #ffffff !important; /* 테두리 흰색 */
+    color: #ffffff !important; /* 기본 글자 흰색 */
+}
+
+/* 유저 상태바 내부의 라벨(OPERATOR : )과 이름 */
+body.angel-mode #user-status span {
+    color: #ffffff !important;
+}
+
+/* 유저 상태바 아이콘(동그라미 포인트) 색상 흰색으로 */
+body.angel-mode #user-status div[style*="background: var(--neon-blue)"] {
+    background: #ffffff !important;
+    box-shadow: 0 0 10px #ffffff !important;
+}
+
+/* 3. 뮤직 플레이어 아이콘 및 비주얼라이저 */
+body.angel-mode .music-btn {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+}
+body.angel-mode .music-bar {
+    background: #ffffff !important; /* 비주얼라이저 막대 흰색 */
+}
+
+/* 4. 관계도 노드 및 척도 텍스트 (흰색 유지) */
+body.angel-mode .rel-node span,
+body.angel-mode .legend-item,
+body.angel-mode .legend-item span {
+    color: #ffffff !important;
+}
+
+</style>
 </head>
 
 <script type="module">
